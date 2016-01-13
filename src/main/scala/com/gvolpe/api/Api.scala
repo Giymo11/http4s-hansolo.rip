@@ -7,11 +7,13 @@ import org.http4s.server.blaze.BlazeBuilder
 object Api extends App {
 
   BlazeBuilder.bindHttp(8080)
-    .mountService(HomeService(), "/")
+    .mountService(ScalaTagsService(), "/")
     .mountService(UserService(), "/users")
     .mountService(ProductService(), "/products")
     .mountService(StreamingService(), "/streaming")
     .mountService(WsService(), "/ws")
+    .mountService(TellMeService(), "/info")
+    .mountService(HomeService(), "/home")
     .run
     .awaitShutdown()
 

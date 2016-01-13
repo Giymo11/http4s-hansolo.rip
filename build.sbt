@@ -19,7 +19,9 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-jawn" % circeVersion,
   "com.chuusai" %% "shapeless" % "2.2.1",
-  "org.scalatest" %% "scalatest" % "2.2.4"
+  "org.scalatest" %% "scalatest" % "2.2.4",
+  "com.lihaoyi" %% "scalatags" % "0.5.3",
+  "com.github.japgolly.scalacss" %% "core" % "0.3.1"
 )
 
 ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := ".*Api.*;.*WsService.*"
