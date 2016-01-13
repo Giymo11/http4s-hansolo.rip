@@ -6,7 +6,7 @@ import org.http4s.server.blaze.BlazeBuilder
 
 object Api extends App {
 
-  BlazeBuilder.bindHttp(8080)
+  BlazeBuilder.bindHttp(80)
     .mountService(ScalaTagsService(), "/")
     .mountService(UserService(), "/users")
     .mountService(ProductService(), "/products")
