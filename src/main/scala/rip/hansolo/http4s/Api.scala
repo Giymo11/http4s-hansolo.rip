@@ -1,11 +1,9 @@
 package rip.hansolo.http4s
 
 import rip.hansolo.http4s.service._
-import special.StreamingService
+import rip.hansolo.http4s.service.special._
 
 import org.http4s.server.blaze.BlazeBuilder
-import rip.hansolo.http4s.service.special.{StreamingService, WsService}
-import rip.hansolo.http4s.service._
 
 object Api extends App {
 
