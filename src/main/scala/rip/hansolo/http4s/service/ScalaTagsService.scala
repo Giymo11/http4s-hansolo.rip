@@ -57,7 +57,7 @@ object ScalaTagsService {
           MyStyles.render[TypedTag[String]],
 
           // this is needed not to confuse it with the Attr title
-          head(tags2.title("hansolo.rip")),
+          head(tags2.title("RIP Han Solo :(")),
 
           body(
             // and then apply it
