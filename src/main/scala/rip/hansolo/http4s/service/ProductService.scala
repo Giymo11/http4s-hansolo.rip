@@ -1,6 +1,6 @@
-package com.gvolpe.api.service
+package rip.hansolo.http4s.service
 
-import com.gvolpe.api.service.PlayJsonImplicits._
+import PlayJsonImplicits._
 import org.http4s.dsl._
 import org.http4s.server.HttpService
 import play.api.libs.json.Json

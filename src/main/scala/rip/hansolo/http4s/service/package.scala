@@ -1,4 +1,4 @@
-package com.gvolpe.api
+package rip.hansolo.http4s
 
 import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._

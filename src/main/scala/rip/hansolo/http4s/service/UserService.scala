@@ -1,6 +1,6 @@
-package com.gvolpe.api.service
+package rip.hansolo.http4s.service
 
-import com.gvolpe.api.service.CirceImplicits._
+import CirceImplicits._
 import org.http4s.dsl._
 import org.http4s.server.HttpService
 import io.circe.generic.auto._

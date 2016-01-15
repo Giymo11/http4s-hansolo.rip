@@ -1,4 +1,4 @@
-package com.gvolpe.api.service
+package rip.hansolo.http4s.service
 
 import org.http4s.EntityBody
 import org.scalatest.{Matchers, WordSpecLike}

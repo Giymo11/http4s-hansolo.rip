@@ -1,4 +1,4 @@
-package com.gvolpe.api.service.special
+package rip.hansolo.http4s.service.special
 
 import org.http4s.dsl._
 import org.http4s.server.HttpService

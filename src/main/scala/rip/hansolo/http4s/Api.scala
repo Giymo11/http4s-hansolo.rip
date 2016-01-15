@@ -1,12 +1,16 @@
-package com.gvolpe.api
+package rip.hansolo.http4s
 
-import com.gvolpe.api.service._
-import com.gvolpe.api.service.special.{WsService, StreamingService}
+import rip.hansolo.http4s.service._
+import special.StreamingService
+
 import org.http4s.server.blaze.BlazeBuilder
+import rip.hansolo.http4s.service.special.{StreamingService, WsService}
+import rip.hansolo.http4s.service._
 
 object Api extends App {
 
-  BlazeBuilder.bindHttp(80)
+  // the 0.0.0.0 enables it to be picked up from outside
+  BlazeBuilder.bindHttp(80, "0.0.0.0")
     .mountService(ScalaTagsService(), "/")
     .mountService(UserService(), "/users")
     .mountService(ProductService(), "/products")

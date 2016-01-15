@@ -21,7 +21,8 @@ libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.2.1",
   "org.scalatest" %% "scalatest" % "2.2.4",
   "com.lihaoyi" %% "scalatags" % "0.5.3",
-  "com.github.japgolly.scalacss" %% "core" % "0.3.1"
+  "com.github.japgolly.scalacss" %% "core" % "0.3.1",
+  "com.github.japgolly.scalacss" %% "ext-scalatags" % "0.3.1"
 )
 
 ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := ".*Api.*;.*WsService.*"

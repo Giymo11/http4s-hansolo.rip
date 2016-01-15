@@ -1,7 +1,8 @@
-package com.gvolpe.api.service.special
+package rip.hansolo.http4s.service.special
 
 import com.gvolpe.api.service.HttpServiceSpec
 import org.http4s.{Request, Status, Uri}
+import rip.hansolo.http4s.service.HttpServiceSpec
 
 class WsServiceSpec extends HttpServiceSpec {
 
