@@ -1,33 +1,15 @@
 package rip.hansolo.http4s.service
 
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-
-import org.http4s.headers.{`Content-Type`, `Content-Length`}
-import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
-import org.http4s.argonaut._
+import org.http4s.headers.`Content-Type`
 import org.http4s.server._
-import org.http4s.server.middleware.PushSupport._
-import org.http4s.server.middleware.authentication._
-
-import scalacss.ValueT
-import scalaz.stream.Process
-import scalaz.stream.time
-import scalaz.concurrent.Task
-import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-
-import scalatags._
-import scalatags.Text._
-import scalatags.Text.short._
-import scalatags.Text.tags._
 
 import scalacss.Defaults._
 import scalacss.ScalatagsCss._
-
-import _root_.argonaut._
-import Argonaut._
+import scalatags.Text._
+import scalatags.Text.short._
+import scalatags.Text.tags._
 
 object ScalaTagsService {
 
