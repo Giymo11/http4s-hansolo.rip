@@ -1,7 +1,6 @@
 simple-http4s-api
 =================
 
-https://travis-ci.org/Giymo11/http4s-hansolo.rip.svg?branch=master
 [![Build Status](https://travis-ci.org/Giymo11/http4s-hansolo.rip.svg)](https://travis-ci.org/Giymo11/http4s-hansolo.rip)
 
 This will be the http4s server running on [hansolo.rip](hansolo.rip).
