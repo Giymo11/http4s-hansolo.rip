@@ -1,5 +1,6 @@
 package rip.hansolo.http4s.service
 
+import org.http4s.HeaderKey
 import org.http4s.dsl._
 import org.http4s.server.HttpService
 
@@ -42,6 +43,11 @@ object TellMeService {
         val value = attributes.get(key)
         println("" + key + ": " + value)
       }
+
+      import org.http4s.headers.Host
+      val hostString = req.headers.get(Host).map(_.value)
+      println("host: " + hostString)
+
       Ok()
     }
 
