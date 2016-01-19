@@ -1,7 +1,7 @@
 package rip.hansolo.http4s
 
 import org.http4s.Response
-import org.http4s.server.{Service, HttpService}
+import org.http4s.server._
 import rip.hansolo.http4s.service._
 import rip.hansolo.http4s.service.special._
 
@@ -15,6 +15,8 @@ object Api extends App {
     println(req.uri.authority)
     Response(Ok)}
   }
+
+
 
   // the 0.0.0.0 enables it to be picked up from outside
   BlazeBuilder.bindHttp(80, "0.0.0.0")
