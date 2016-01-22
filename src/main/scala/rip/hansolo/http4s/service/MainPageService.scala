@@ -11,7 +11,7 @@ import scalatags.Text._
 import scalatags.Text.short._
 import scalatags.Text.tags._
 
-object ScalaTagsService {
+object MainPageService {
 
   def apply(): HttpService = service
 

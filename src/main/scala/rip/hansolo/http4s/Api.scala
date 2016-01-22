@@ -33,7 +33,7 @@ object Api extends App {
 
       val hostDisjunction = for {
         hostFound <- hostString \/> "no domain found in request"
-        hostValid <- Option(hostFound).filter(predicate) \/> "host is not satisfying predicatie"
+        hostValid <- (Option(hostFound) filter predicate) \/> "host is not satisfying predicatie"
       } yield hostValid
 
       hostDisjunction match {
@@ -54,12 +54,12 @@ object Api extends App {
 
   // the 0.0.0.0 enables it to be picked up from outside
   BlazeBuilder.bindHttp(80, "0.0.0.0")
-    .mountService(ScalaTagsService(), "/")
-    .mountService(UserService(), "/users")
-    .mountService(ProductService(), "/products")
-    .mountService(StreamingService(), "/streaming")
-    .mountService(WsService(), "/ws")
+    .mountService(MainPageService(), "/")
     .mountService(testingDomainFilter(TellMeService()), "/info")
+    //.mountService(UserService(), "/users")
+    //.mountService(ProductService(), "/products")
+    //.mountService(StreamingService(), "/streaming")
+    //.mountService(WsService(), "/ws")
     .mountService(HomeService(), "/home")
     .run
     .awaitShutdown()
