@@ -33,7 +33,7 @@ object Api extends App {
 
       val hostDisjunction = for {
         hostFound <- hostString \/> "no domain found in request"
-        hostValid <- (Option(hostFound) filter predicate) \/> "host is not satisfying predicatie"
+        hostValid <- (Option(hostFound) filter predicate) \/> "host is not satisfying predicate"
       } yield hostValid
 
       hostDisjunction match {
@@ -60,7 +60,7 @@ object Api extends App {
     //.mountService(ProductService(), "/products")
     //.mountService(StreamingService(), "/streaming")
     //.mountService(WsService(), "/ws")
-    .mountService(HomeService(), "/home")
+    .mountService(HelloWorldService(), "/hello")
     .run
     .awaitShutdown()
 

@@ -6,7 +6,7 @@ class HomeServiceSpec extends HttpServiceSpec {
 
   "Home Service" should {
 
-    val service = HomeService()
+    val service = HelloWorldService()
 
     "Not find the unknown url request" in {
       val request = new Request(uri = Uri(path = "/unknown"))
