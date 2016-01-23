@@ -1,4 +1,11 @@
 language: scala
 scala: 2.11.7
 jdk: oraclejdk8
-script: "sbt clean coverage test"
+script: sbt clean coverage test
+env:
+  global:
+    secure: EztaNLSpUO9HS8FUjVNW/mNIgfZ3KSF1QewTKW80WwXwa54Je0Ee2H8ww2N5YsgX1FO44lwCsekkqzu0G4mMY8ME8WLmKgr0tyTVHHXdJhvHswO2s626tZ98URoTwBU9QIsmKJkGwfeb1w0WqQXx9J/rtwwwzLdykiop06emY6dySJktJkMewNK3PRPcTKcYBpJz9yRcLE7hthCS1XQB04Hv1X+6U9xecIvJyaTsRyP74LSrHoLfxmkQM6ZISYTm05EI1v9bukUdHM4c1+4txgodIEJR9FFxKeeZxnkMqD4v5p6USI6YwWI3fOPEW0GZPZDagShTpoDJ1uXL6G7S3SP9CQirpcqlG+z14xMFiBtFOnAN3g43/D/eVFT6ftM/BvhSjIdKKqvsX2XEKOkzFjl4SiVb3u5NbeZgs7rMEEW7pxvmCt3oYMyzBgcBEPPBzFfPA5s5kuT+pzwF5Cr9yyKfaDf5TZi3ryex16sZ2zklsTFW/J2qVBk2gT5rCu21Pc1aVgxMETo0mW9BCKZTC1Yq2uKbbNoNJP6uNUUPQQRvRiiu2G4pC2B07Yvh7/uaTfxuzX42S9TNFk4WLoy7+TTRRsWThOZYhBrRTjrJ+Icwn0Qiwrp3M77cW1lLuL2XmQPkMCt1Db0p+HML+FKFQOTijyVFfaPjFOXs31OtiMc=
+after_success:
+  - "curl -o /tmp/travis-automerge https://raw.githubusercontent.com/cdown/travis-automerge/master/travis-automerge"
+  - "chmod a+x /tmp/travis-automerge"
+  - "BRANCHES_TO_MERGE_REGEX='dev' BRANCH_TO_MERGE_INTO=master GITHUB_REPO=Giymo11/http4s-hansolo.rip /tmp/travis-automerge"

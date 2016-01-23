@@ -2,7 +2,7 @@ package rip.hansolo.http4s.service
 
 import org.http4s.{Request, Status, Uri}
 
-class HomeServiceSpec extends HttpServiceSpec {
+class HelloWorldSpec extends HttpServiceSpec {
 
   "Home Service" should {
 
@@ -20,7 +20,7 @@ class HomeServiceSpec extends HttpServiceSpec {
       val response = service.run(request).run
 
       response.status should be (Status.Ok)
-      response.body should be ("Http4s API".asByteVector)
+      response.body should be ("Hello World!".asByteVector)
     }
 
   }
