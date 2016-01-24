@@ -9,7 +9,7 @@ object HelloWorldService {
 
   private val service = HttpService {
     case GET -> Root =>
-      Ok("Hello World!!!")
+      Ok("Hello World!")
   }
 
 }

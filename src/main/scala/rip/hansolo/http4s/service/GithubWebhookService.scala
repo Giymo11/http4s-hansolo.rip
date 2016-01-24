@@ -2,7 +2,6 @@ package rip.hansolo.http4s.service
 
 import org.http4s.dsl._
 import org.http4s.argonaut._
-import org.http4s.MediaType._
 import org.http4s.server._
 
 import scalaz._, Scalaz._
@@ -24,7 +23,7 @@ object GithubWebhookService {
         // read the field "ref", get rid of the '"'
         ref <- payload.field("ref").map(_.toString().replace("\"", "")) \/> "Field 'ref' not found"
         // check if its the right branch
-        master <- (ref === "refs/heads/master").option() \/> "Branch does not end in master"
+        master <- (ref === "refs/heads/master").option() \/> "Not the master branch"
       } yield master
 
       master match {
