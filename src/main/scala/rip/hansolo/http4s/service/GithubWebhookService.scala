@@ -18,19 +18,20 @@ object GithubWebhookService {
   private val service = HttpService {
     case req @ POST -> Root =>
 
-      val payload = req.attemptAs[Json].run.run.leftMap(_.toString)
-
-      payload match {
-        case -\/(error) => println("error: " + error)
-        case \/-(jsonPayload) => println("json: " + jsonPayload.spaces2)
-      }
-
-      val master: \/[String, Boolean] =
-        payload.flatMap(_.field("ref").map(_.string).map(_.contains("master")) \/> "Branch is not master")
+      val master = for {
+        // turn the body into Json, the error into a String
+        payload <- req.attemptAs[Json].run.run.leftMap(_.toString)
+        // read the field "ref", get rid of the '"'
+        ref <- payload.field("ref").map(_.toString().replace("\"", "")) \/> "Field 'ref' not found"
+        // check if its the right branch
+        master <- (ref === "refs/heads/master").option() \/> "Branch does not end in master"
+      } yield master
 
       master match {
         case -\/(error) => println("error: " + error)
-        case \/-(isMaster) => println("isMaster: " + isMaster)
+        case \/-(_) =>
+          import sys.process._
+          println("git pull origin master" !)
       }
 
       Accepted()
