@@ -1,11 +1,12 @@
 package rip.hansolo.http4s.service
 
+import _root_.argonaut._
 import org.http4s.dsl._
 import org.http4s.argonaut._
-import org.http4s.server._
+import org.http4s._
 
 import scalaz._, Scalaz._
-import argonaut._, Argonaut._
+import argonaut._
 
 /**
   * Created by Giymo11 on 24.01.2016.

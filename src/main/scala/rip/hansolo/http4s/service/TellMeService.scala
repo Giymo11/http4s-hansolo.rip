@@ -1,7 +1,7 @@
 package rip.hansolo.http4s.service
 
 import org.http4s.dsl._
-import org.http4s.server.HttpService
+import org.http4s._
 
 
 /**

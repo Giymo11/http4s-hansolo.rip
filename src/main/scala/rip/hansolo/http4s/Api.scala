@@ -1,9 +1,8 @@
 package rip.hansolo.http4s
 
 import org.http4s.headers.Host
-import org.http4s.{Request, Response}
 import org.http4s.server._
-import org.log4s._
+import org.http4s.{Request, Response}
 import rip.hansolo.http4s.service._
 
 import org.http4s.server.blaze.BlazeBuilder
@@ -11,8 +10,6 @@ import org.http4s.server.blaze.BlazeBuilder
 import scalaz._
 
 object Api extends App {
-
-  private[this] val logger = getLogger
 
   import org.http4s.dsl._
 
@@ -55,10 +52,6 @@ object Api extends App {
   BlazeBuilder.bindHttp(80, "0.0.0.0")
     .mountService(MainPageService(), "/")
     .mountService(testingDomainFilter(TellMeService()), "/info")
-    //.mountService(UserService(), "/users")
-    //.mountService(ProductService(), "/products")
-    //.mountService(StreamingService(), "/streaming")
-    //.mountService(WsService(), "/ws")
     .mountService(HelloWorldService(), "/hello")
     .mountService(GithubWebhookService(), "/webhook")
     .run

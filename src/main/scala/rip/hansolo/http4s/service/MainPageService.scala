@@ -3,13 +3,12 @@ package rip.hansolo.http4s.service
 import org.http4s.MediaType._
 import org.http4s.dsl._
 import org.http4s.headers.`Content-Type`
-import org.http4s.server._
+import org.http4s._
 
 import scalacss.Defaults._
 import scalacss.ScalatagsCss._
 import scalatags.Text._
 import scalatags.Text.short._
-import scalatags.Text.tags._
 
 object MainPageService {
 
