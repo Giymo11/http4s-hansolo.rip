@@ -5,7 +5,6 @@ import org.http4s.{Request, Response}
 import org.http4s.server._
 import org.log4s._
 import rip.hansolo.http4s.service._
-import rip.hansolo.http4s.service.special._
 
 import org.http4s.server.blaze.BlazeBuilder
 
@@ -61,6 +60,7 @@ object Api extends App {
     //.mountService(StreamingService(), "/streaming")
     //.mountService(WsService(), "/ws")
     .mountService(HelloWorldService(), "/hello")
+    .mountService(GithubWebhookService(), "/webhook")
     .run
     .awaitShutdown()
 
