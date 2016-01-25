@@ -1,8 +1,12 @@
-name := """simple-http4s-api"""
+// Turn this project into a Scala.js project by importing these settings
 
-version := "1.0"
+import sbt.Keys._
+import com.lihaoyi.workbench.Plugin._
+import spray.revolver.AppProcess
+import spray.revolver.RevolverPlugin.Revolver
 
-scalaVersion := "2.11.7"
+resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
+resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 val http4sVersion = "0.12.0"
 val circeVersion = "0.2.1"
@@ -11,32 +15,47 @@ val specs2Version = "3.7"
 // cannot bump to scalaz 7.2.0 yet
 val scalaCssVersion = "0.3.1"
 
-resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
-resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
-
-libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-argonaut" % http4sVersion,
-  "org.scalaz" %% "scalaz-core" % scalazCoreVersion,
-  "com.chuusai" %% "shapeless" % "2.2.5",
-  "com.lihaoyi" %% "scalatags" % "0.5.4",
-  "com.github.japgolly.scalacss" %% "core" % scalaCssVersion,
-  "com.github.japgolly.scalacss" %% "ext-scalatags" % scalaCssVersion,
-  "com.typesafe.play" % "play-json_2.11" % "2.4.6"
+val hansolo = crossProject.settings(
+  name := "hansolo.rip",
+  scalaVersion := "2.11.4",
+  version := "0.1-SNAPSHOT",
+  libraryDependencies ++= Seq(
+    "com.lihaoyi" %%% "upickle" % "0.3.6",
+    "com.lihaoyi" %%% "autowire" % "0.2.4",
+    "com.lihaoyi" %%% "scalatags" % "0.5.4"
+  )
+).jsSettings(
+  workbenchSettings:_*
+).jsSettings(
+  name := "scala-js",
+  libraryDependencies ++= Seq(
+    "org.scala-js" %%% "scalajs-dom" % "0.8.1"
+  ),
+  bootSnippet := "example.ScalaJSExample().main();"
+).jvmSettings(
+  Revolver.settings:_*
+).jvmSettings(
+  name := "http4s-server",
+  libraryDependencies ++= Seq(
+    "io.spray" %% "spray-can" % "1.3.1",
+    "io.spray" %% "spray-routing" % "1.3.1",
+    "com.typesafe.akka" %% "akka-actor" % "2.3.2",
+    "org.webjars" % "bootstrap" % "3.2.0",
+    "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+    "org.http4s" %% "http4s-dsl" % http4sVersion,
+    "org.http4s" %% "http4s-argonaut" % http4sVersion,
+    "org.scalaz" %% "scalaz-core" % scalazCoreVersion,
+    "com.chuusai" %% "shapeless" % "2.2.5",
+    "com.github.japgolly.scalacss" %% "core" % scalaCssVersion,
+    "com.github.japgolly.scalacss" %% "ext-scalatags" % scalaCssVersion,
+    "com.typesafe.play" % "play-json_2.11" % "2.4.6"
+  )
 )
 
-// most of the libraries taken from the http4s project
-
-// no tests for now, they will follow after the scala-js integration
-/*libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2-core" % specs2Version,
-  "org.scalacheck" %% "scalacheck" % "1.12.5",
-  // maybe later logbackClassic
-  "org.scalaz" %% "scalaz-scalacheck-binding" % scalazCoreVersion,
-  "org.specs2" %% "specs2-matcher-extra" % specs2Version,
-  "org.specs2" %% "specs2-scalacheck" % specs2Version,
-  "org.scalatest" %% "scalatest" % "2.2.6"
-).map(_ % "test")*/
-
-ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := ".*Api.*;.*WsService.*"
+val `hansolo-js` = hansolo.js
+val `hansolo-jvm` = hansolo.jvm.settings(
+  (resources in Compile) += {
+    (fastOptJS in (`hansolo-js`, Compile)).value
+    (artifactPath in (`hansolo-js`, Compile, fastOptJS)).value
+  }
+)

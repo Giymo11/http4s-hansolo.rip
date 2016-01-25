@@ -2,10 +2,9 @@ package rip.hansolo.http4s
 
 import org.http4s.headers.Host
 import org.http4s.server._
+import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.{Request, Response}
 import rip.hansolo.http4s.service._
-
-import org.http4s.server.blaze.BlazeBuilder
 
 import scalaz._
 
