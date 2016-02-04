@@ -9,7 +9,7 @@ resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releas
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 resolvers += Resolver.sonatypeRepo("snapshots")
 
-val http4sVersion = "0.12.0"
+val http4sVersion = "0.12.1"
 val circeVersion = "0.2.1"
 val scalazCoreVersion = "7.1.4"
 val specs2Version = "3.7"
@@ -21,8 +21,8 @@ val hansolo = crossProject.settings(
   scalaVersion := "2.11.4",
   version := "0.1-SNAPSHOT",
   libraryDependencies ++= Seq(
-    "com.lihaoyi" %%% "upickle" % "0.3.6",
-    "com.lihaoyi" %%% "autowire" % "0.2.4",
+    "com.lihaoyi" %%% "upickle" % "0.3.8",
+    "com.lihaoyi" %%% "autowire" % "0.2.5",
     "com.lihaoyi" %%% "scalatags" % "0.5.4"
   )
 ).jsSettings(
@@ -30,7 +30,7 @@ val hansolo = crossProject.settings(
 ).jsSettings(
   name := "scala-js",
   libraryDependencies ++= Seq(
-    "org.scala-js" %%% "scalajs-dom" % "0.8.1",
+    "org.scala-js" %%% "scalajs-dom" % "0.8.2",
     "com.timushev" %%% "scalatags-rx" % "0.1.0"
   ),
   bootSnippet := "GameScript().main();",
@@ -40,10 +40,10 @@ val hansolo = crossProject.settings(
 ).jvmSettings(
   name := "http4s-server",
   libraryDependencies ++= Seq(
-    "io.spray" %% "spray-can" % "1.3.1",
-    "io.spray" %% "spray-routing" % "1.3.1",
-    "com.typesafe.akka" %% "akka-actor" % "2.3.2",
-    "org.webjars" % "bootstrap" % "3.2.0",
+    "io.spray" %% "spray-can" % "1.3.3",
+    "io.spray" %% "spray-routing" % "1.3.3",
+    "com.typesafe.akka" %% "akka-actor" % "2.4.1",
+    "org.webjars" % "bootstrap" % "3.3.6",
     "org.http4s" %% "http4s-blaze-server" % http4sVersion,
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-argonaut" % http4sVersion,
