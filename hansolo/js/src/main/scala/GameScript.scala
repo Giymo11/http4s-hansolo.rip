@@ -1,3 +1,5 @@
+import org.scalajs.dom.ext.KeyCode
+
 import scala.scalajs.js._
 import scala.scalajs.js.annotation.JSExport
 
@@ -5,48 +7,103 @@ import scala.scalajs.js._
 import org.scalajs.dom
 import org.scalajs.dom._
 
+import scala.util.Random
+
 /**
   * Created by Giymo11 on 2016-02-04 at 01:32.
   */
 object GameScript extends JSApp {
 
-  case class Point(x: Int, y: Int) {
-    def +(p: Point) = Point(x + p.x, y + p.y)
+  def sign(i: Int) = if(i < 0) -1 else 1
+
+  case class Vec2(x: Int, y: Int) {
+    def +(p: Vec2) = Vec2(x + p.x, y + p.y)
+    def -(i: Int) = Vec2(x - i, y - i)
+    def -(p: Vec2) = Vec2(x - p.x, y - p.y)
+    def *(i: Int) = Vec2(x * i, y * i)
+    def ones1 = if(Math.abs(x) > Math.abs(y)) Vec2(sign(x), 0) else Vec2(0, sign(y))
+    def ones2 = Vec2(sign(x), sign(y))
+    def value = Math.sqrt(x*x + y*y)
+  }
+  object Vec2 {
+    def random(maxX: Int, maxY: Int) = Vec2(Random.nextInt(maxX), Random.nextInt(maxY))
   }
 
-  val canvas =
-    dom.document
-      .getElementById("canvas")
+
+  val canvas = dom.document.getElementById("canvas")
       .asInstanceOf[html.Canvas]
 
   val context = canvas.getContext("2d")
       .asInstanceOf[dom.CanvasRenderingContext2D]
 
-  var player = Point(dom.innerWidth/2, dom.innerHeight/2)
+  val middle = Vec2(dom.innerWidth/2, dom.innerHeight/2)
 
-  def run(): Unit = {
+  var player = middle
+
+  var points = Seq.fill(200)(Vec2.random(dom.innerWidth, dom.innerHeight))
+
+  var useAccumulatedVector = false
+  var creepMiddle = false
+
+  var intervalSpeed = 10
+  var drawInterval = dom.setInterval(() => run(), 13)
+
+  def draw(): Unit = {
     clear()
 
-    import scala.util.Random
-    val delta = Point(Random.nextInt(40) - 20, Random.nextInt(40) - 20)
-
-    player = player + delta
-
     context.fillStyle = "white"
+    points.foreach(p => context.fillRect(p.x - 8, p.y - 8, 16, 16))
+
+    context.fillStyle = "red"
     context.fillRect(player.x - 10, player.y - 10, 20, 20)
+  }
+
+  def run(): Unit = {
+    points = points.map(p1 => {
+      val distances = points.map(p2 => p2 - p1) ++ Seq(player - p1)
+      val closeOnes = distances.filter(_.value < 80)
+      val delta =
+        if(useAccumulatedVector)
+          closeOnes.fold(Vec2(0, 0))(_ + _) * -1
+        else
+          closeOnes(Random.nextInt(closeOnes.size)) * -1
+      //
+      p1 + delta + {
+        if(creepMiddle)
+          if(Random.nextBoolean())
+            (middle - p1).ones1
+          else
+            (middle - p1).ones2
+        else Vec2(0, 0)
+      }
+    })
+
+    draw()
+  }
+
+  def changeIntervalBy(i: Int) = {
+    intervalSpeed += i
+    dom.clearInterval(drawInterval)
+    drawInterval = dom.setInterval(() => run(), 6 * intervalSpeed)
   }
 
   override def main(): Unit = {
     println("Hello World")
     clear()
 
-    dom.onmousemove = (e: MouseEvent) => player = Point(e.clientX.toInt, e.clientY.toInt)
+    dom.onmousemove = (e: MouseEvent) => player = Vec2(e.clientX.toInt, e.clientY.toInt)
+    dom.onkeydown = (e: KeyboardEvent) => e.keyCode match {
+      case KeyCode.T => useAccumulatedVector = !useAccumulatedVector
+      case KeyCode.M => creepMiddle = !creepMiddle
+      case KeyCode.Up => changeIntervalBy(-1)
+      case KeyCode.Down => changeIntervalBy(1)
+    }
 
-    dom.setInterval(() => run(), 20)
+    changeIntervalBy(0)
+    dom.setInterval(() => draw(), 13)
   }
 
   def clear(): Unit = {
-
     canvas.width = dom.innerWidth
     canvas.height = dom.innerHeight
 
