@@ -7,6 +7,7 @@ import spray.revolver.RevolverPlugin.Revolver
 
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+resolvers += Resolver.sonatypeRepo("snapshots")
 
 val http4sVersion = "0.12.0"
 val circeVersion = "0.2.1"
@@ -29,9 +30,11 @@ val hansolo = crossProject.settings(
 ).jsSettings(
   name := "scala-js",
   libraryDependencies ++= Seq(
-    "org.scala-js" %%% "scalajs-dom" % "0.8.1"
+    "org.scala-js" %%% "scalajs-dom" % "0.8.1",
+    "com.timushev" %%% "scalatags-rx" % "0.1.0"
   ),
-  bootSnippet := "example.ScalaJSExample().main();"
+  bootSnippet := "GameScript().main();",
+  updateBrowsers <<= updateBrowsers.triggeredBy(fastOptJS in Compile)
 ).jvmSettings(
   Revolver.settings:_*
 ).jvmSettings(

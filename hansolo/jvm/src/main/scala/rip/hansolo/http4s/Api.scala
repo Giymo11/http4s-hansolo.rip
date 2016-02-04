@@ -3,7 +3,8 @@ package rip.hansolo.http4s
 import org.http4s.headers.Host
 import org.http4s.server._
 import org.http4s.server.blaze.BlazeBuilder
-import org.http4s.{Request, Response}
+import org.http4s.server.staticcontent.ResourceService
+import org.http4s.{HttpService, StaticFile, Request, Response}
 import rip.hansolo.http4s.service._
 
 import scalaz._
@@ -47,12 +48,17 @@ object Api extends App {
     */
   val testingDomainFilter = domainFilter((domain: String)  => domain.contains("test") || domain.contains("localhost"))
 
+  import staticcontent.resourceService
+  import ResourceService.Config
+
   // the 0.0.0.0 enables it to be picked up from outside
   BlazeBuilder.bindHttp(80, "0.0.0.0")
     .mountService(MainPageService(), "/")
     .mountService(testingDomainFilter(TellMeService()), "/info")
     .mountService(HelloWorldService(), "/hello")
     .mountService(GithubWebhookService(), "/webhook")
+    .mountService(GameService(), "/game")
+    .mountService(resourceService(Config(basePath = "")), "/public")
     .run
     .awaitShutdown()
 

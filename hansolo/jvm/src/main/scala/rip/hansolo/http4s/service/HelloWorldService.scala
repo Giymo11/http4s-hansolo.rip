@@ -11,5 +11,4 @@ object HelloWorldService {
     case GET -> Root =>
       Ok("Hello World!")
   }
-
 }
