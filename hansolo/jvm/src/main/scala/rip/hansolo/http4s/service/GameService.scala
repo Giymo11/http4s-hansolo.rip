@@ -20,7 +20,7 @@ object GameService {
       Ok(
         html(
           head(
-            tags2.title("Dodge the Dots"),
+            tags2.title("Dot Equilibrium"),
             meta(httpEquiv := "Content-Type", content := "text/html", charset := "UTF-8")
           ),
           body(

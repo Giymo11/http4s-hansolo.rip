@@ -14,21 +14,20 @@ import scala.util.Random
   */
 object GameScript extends JSApp {
 
-  def sign(i: Int) = if(i < 0) -1 else 1
+  def sign(i: Int) = if(i < 0) -1 else if(i > 0) 1 else 0
+
 
   case class Vec2(x: Int, y: Int) {
     def +(p: Vec2) = Vec2(x + p.x, y + p.y)
     def -(i: Int) = Vec2(x - i, y - i)
     def -(p: Vec2) = Vec2(x - p.x, y - p.y)
     def *(i: Int) = Vec2(x * i, y * i)
-    def ones1 = if(Math.abs(x) > Math.abs(y)) Vec2(sign(x), 0) else Vec2(0, sign(y))
-    def ones2 = Vec2(sign(x), sign(y))
+    def signs = Vec2(sign(x), sign(y))
     def value = Math.sqrt(x*x + y*y)
   }
   object Vec2 {
     def random(maxX: Int, maxY: Int) = Vec2(Random.nextInt(maxX), Random.nextInt(maxY))
   }
-
 
   val canvas = dom.document.getElementById("canvas")
       .asInstanceOf[html.Canvas]
@@ -60,24 +59,15 @@ object GameScript extends JSApp {
 
   def run(): Unit = {
     points = points.map(p1 => {
+      // the distances from p1 to all other points
       val distances = points.map(p2 => p2 - p1) ++ Seq(player - p1)
+      // the relative vectors to points that are at most 80 pixels away
       val closeOnes = distances.filter(_.value < 80)
-      val delta =
-        if(useAccumulatedVector)
-          closeOnes.fold(Vec2(0, 0))(_ + _) * -1
-        else
-          closeOnes(Random.nextInt(closeOnes.size)) * -1
-      //
-      p1 + delta + {
-        if(creepMiddle)
-          if(Random.nextBoolean())
-            (middle - p1).ones1
-          else
-            (middle - p1).ones2
-        else Vec2(0, 0)
-      }
+      // either the accumulated relative vector, or one of the relative vectors
+      val delta = if(useAccumulatedVector) closeOnes.fold(Vec2(0, 0))(_ + _) else closeOnes(Random.nextInt(closeOnes.size))
+      // the new position of the point
+      p1 + delta * -1 + (if(creepMiddle) (middle - p1).signs else Vec2(0, 0))
     })
-
     draw()
   }
 
@@ -97,9 +87,11 @@ object GameScript extends JSApp {
       case KeyCode.M => creepMiddle = !creepMiddle
       case KeyCode.Up => changeIntervalBy(-1)
       case KeyCode.Down => changeIntervalBy(1)
+      case _ => //ignored
     }
 
     changeIntervalBy(0)
+    // run draw every 13ms
     dom.setInterval(() => draw(), 13)
   }
 
