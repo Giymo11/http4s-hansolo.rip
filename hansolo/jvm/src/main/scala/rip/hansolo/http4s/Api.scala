@@ -4,7 +4,7 @@ import org.http4s.headers.Host
 import org.http4s.server._
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.staticcontent.ResourceService
-import org.http4s.{HttpService, StaticFile, Request, Response}
+import org.http4s._
 import rip.hansolo.http4s.service._
 
 import scalaz._
@@ -51,6 +51,8 @@ object Api extends App {
   import staticcontent.resourceService
   import ResourceService.Config
 
+  val redirectToKoiService = HttpService { case GET -> Root => SeeOther(Uri.fromString("http://koi.moe").getOrElse(Uri())) }
+
   // the 0.0.0.0 enables it to be picked up from outside
   BlazeBuilder.bindHttp(80, "0.0.0.0")
     .mountService(MainPageService(), "/")
@@ -59,6 +61,7 @@ object Api extends App {
     .mountService(GithubWebhookService(), "/webhook")
     .mountService(GameService(), "/game")
     .mountService(resourceService(Config(basePath = "")), "/public")
+    .mountService(redirectToKoiService, "/moe")
     .run
     .awaitShutdown()
 

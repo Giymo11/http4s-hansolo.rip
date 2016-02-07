@@ -18,7 +18,7 @@ val scalaCssVersion = "0.3.1"
 
 val hansolo = crossProject.settings(
   name := "hansolo.rip",
-  scalaVersion := "2.11.4",
+  scalaVersion := "2.11.7",
   version := "0.1-SNAPSHOT",
   libraryDependencies ++= Seq(
     "com.lihaoyi" %%% "upickle" % "0.3.8",
