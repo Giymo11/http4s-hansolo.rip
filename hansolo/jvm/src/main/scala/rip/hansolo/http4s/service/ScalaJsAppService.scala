@@ -10,7 +10,7 @@ import scalatags.Text.tags2
 /**
   * Created by Giymo11 on 09.02.2016.
   */
-object ScalaJsService {
+object ScalaJsAppService {
   def apply(title: String, sjsMainObject: String): HttpService = HttpService {
     case req @ GET -> Root =>
       Ok(

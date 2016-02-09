@@ -27,7 +27,7 @@ object Main extends App {
       "/" -> NonEmptyList(TilService().forDomain("blog"), MainPageService()),
       "/info" -> NonEmptyList(TellMeService().forDomains(Seq("test", "localhost"))),
       "/hello" -> NonEmptyList(HelloWorldService()),
-      "/reddit" -> NonEmptyList(ScalaJsService("Reddit Api Trickery", "rip.hansolo.script.RedditPicturesScript"))
+      "/reddit" -> NonEmptyList(ScalaJsAppService("Reddit Api Trickery", "rip.hansolo.script.RedditPicturesScript"))
     )
 
   def mapMountpointsOntoBuilder(initialBuilder: ServerBuilder, mountingMap: MountingMap): ServerBuilder = {
