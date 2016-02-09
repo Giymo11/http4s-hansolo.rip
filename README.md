@@ -1,4 +1,4 @@
-simple-http4s-api
+http4s-hansolo.rip
 =================
 
 [![Build Status](https://travis-ci.org/Giymo11/http4s-hansolo.rip.svg)](https://travis-ci.org/Giymo11/http4s-hansolo.rip)
@@ -14,12 +14,13 @@ At te moment, it uses libraries such as:
 * FP: [scalaz](https://github.com/scalaz/scalaz)
 * HTML: [scalatags](https://github.com/lihaoyi/scalatags)
 * CSS: [scalacss](https://github.com/japgolly/scalacss)
+* RX: [scala-rx](https://github.com/lihaoyi/scala.rx)
 
 Some possible additions would be:
 * JSON: [argonaut](https://github.com/argonaut-io/argonaut)
+* Serialization: [upickle](https://lihaoyi.github.io/upickle-pprint/upickle/)
 * RMI: [autowire](https://github.com/lihaoyi/autowire)
 * DB: [doobie](https://github.com/tpolecat/doobie)
-* RX: [scala-rx](https://github.com/lihaoyi/scala.rx)
 
 
 Plugins used:

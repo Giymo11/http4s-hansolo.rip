@@ -31,7 +31,8 @@ val hansolo = crossProject.settings(
   name := "scala-js",
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scalajs-dom" % "0.8.2",
-    "com.timushev" %%% "scalatags-rx" % "0.1.0"
+    "com.timushev" %%% "scalatags-rx" % "0.1.0",
+    "com.lihaoyi" %%% "scalarx" % "0.3.0"
   ),
   bootSnippet := "GameScript().main();",
   updateBrowsers <<= updateBrowsers.triggeredBy(fastOptJS in Compile)

@@ -26,7 +26,8 @@ object Main extends App {
   val mountingMap: MountingMap = Map(
       "/" -> NonEmptyList(TilService().forDomain("blog"), MainPageService()),
       "/info" -> NonEmptyList(TellMeService().forDomains(Seq("test", "localhost"))),
-      "/hello" -> NonEmptyList(HelloWorldService())
+      "/hello" -> NonEmptyList(HelloWorldService()),
+      "/reddit" -> NonEmptyList(ScalaJsService("Reddit Api Trickery", "RedditPicturesScript"))
     )
 
   def mapMountpointsOntoBuilder(initialBuilder: ServerBuilder, mountingMap: MountingMap): ServerBuilder = {
@@ -34,7 +35,6 @@ object Main extends App {
     mountingMap.foldLeft(initialBuilder)(
       (builder, entry) => {
         val (path, services) = entry
-
         // fold the services together, in that if the first returns HttpService.notFound, the second will be tried, and so on
         import scalaz.syntax.foldable1._
         builder.mountService(services.foldLeft1(_ || _), path)

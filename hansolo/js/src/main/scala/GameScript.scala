@@ -16,7 +16,6 @@ object GameScript extends JSApp {
 
   def sign(i: Int) = if(i < 0) -1 else if(i > 0) 1 else 0
 
-
   case class Vec2(x: Int, y: Int) {
     def +(p: Vec2) = Vec2(x + p.x, y + p.y)
     def -(i: Int) = Vec2(x - i, y - i)
