@@ -1,9 +1,11 @@
 package rip.hansolo.script
 
 import org.scalajs.dom
+import org.scalajs.dom.raw.Event
 import rx.async.Timer
 import rx.{Ctx, Rx, Var}
 
+import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.{JSON, JSApp}
 import scala.scalajs.js.annotation.JSExport
@@ -36,32 +38,53 @@ object RedditPicturesScript extends JSApp {
 
     timer triggerLater {secondsPassed() = secondsPassed.now + 1}
 
-    val testSubredditUrl = "https://www.reddit.com/r/reddit_api_test.json"
+    val redditUrl = "https://www.reddit.com"
+    val subredditUrl = Var("/r/reddit_api_test.json")
+
+    val queryInput = input(
+      id := "query-input",
+      placeholder := subredditUrl,
+      autofocus := true
+    ).render
+
+    queryInput.onchange = (e: Event) => {
+      subredditUrl() = queryInput.value
+      queryInput.value = ""
+    }
 
     val startAjax = () => {
       import scala.concurrent.ExecutionContext.Implicits.global
+
+      val testSubredditUrl = redditUrl + subredditUrl.now
+
       val future = Ajax.get(testSubredditUrl)
-      future.onSuccess { case xhr =>
-        val json = JSON.parse(xhr.responseText)
-
-        val posts: Seq[js.Dynamic] = json.data.children.asInstanceOf[js.Array[js.Dynamic]]
-        val titles = posts.map(child => child.data.title.asInstanceOf[String])
-
-        println("worked?")
-        redditResponse() = p("Kind: " + json.kind + ", first child: " + titles.head)
-      }
-      future.onFailure { case e => redditResponse() = "Error: " + e.getMessage}
+        .map(xhr => JSON.parse(xhr.responseText))
+        .map(json => {
+          val posts: Seq[js.Dynamic] = json.data.children.asInstanceOf[js.Array[js.Dynamic]]
+          (json.kind.asInstanceOf[String], posts.map(_.data.title.asInstanceOf[String]))
+        }).map{ case(kind, titles) =>
+          div(
+            p("Kind: " + kind + ", first child: " + titles.head),
+            ul(titles.map(li(_)))
+          )
+        }.recover { case e =>
+          span(e.getMessage, backgroundColor := "red")
+        }
+      future foreach (ele => redditResponse() = ele)
     }
+
+    subredditUrl foreach (newValue => startAjax())
 
     val body = dom.document.body
     body.innerHTML = ""
     body.appendChild(
       div(id := "scalatags",
         p(helloWorld),
+        queryInput,
+        p(subredditUrl),
         button("start ajax", onclick := startAjax),
         redditResponse
       ).render
     )
-
   }
 }

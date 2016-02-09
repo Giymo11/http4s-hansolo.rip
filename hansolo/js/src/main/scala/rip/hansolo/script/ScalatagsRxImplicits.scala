@@ -1,6 +1,7 @@
 package rip.hansolo.script
 
-import rx.Rx
+import org.scalajs.dom.Element
+import rx.{Var, Rx}
 
 import scala.scalajs.js
 import scalatags.JsDom.all._
@@ -30,5 +31,16 @@ object ScalatagsRxImplicits {
     }
 
     current
+  }
+
+  implicit def VarAttrValue[T: AttrValue] = new AttrValue[Var[T]]{
+    def apply(t: Element, a: Attr, r: Var[T]): Unit = {
+      r.trigger{ implicitly[AttrValue[T]].apply(t, a, r.now) }
+    }
+  }
+  implicit def RxAttrValue[T: AttrValue] = new AttrValue[Rx[T]]{
+    def apply(t: Element, a: Attr, r: Rx[T]): Unit = {
+      r.trigger{ implicitly[AttrValue[T]].apply(t, a, r.now) }
+    }
   }
 }
