@@ -33,7 +33,7 @@ object GameService {
               )
             ),
             script(`type` := "text/javascript", src := "/public/scala-js-fastopt.js"),
-            script("GameScript().main()")
+            script("rip.hansolo.script.GameScript().main()")
           )
         ).render
       ).withContentType(Some(`Content-Type`(`text/html`)))

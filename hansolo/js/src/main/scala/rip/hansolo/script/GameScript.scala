@@ -1,12 +1,10 @@
-import org.scalajs.dom.ext.KeyCode
+package rip.hansolo.script
 
-import scala.scalajs.js._
-import scala.scalajs.js.annotation.JSExport
-
-import scala.scalajs.js._
 import org.scalajs.dom
 import org.scalajs.dom._
+import org.scalajs.dom.ext.KeyCode
 
+import scala.scalajs.js.{JSApp, Math}
 import scala.util.Random
 
 /**

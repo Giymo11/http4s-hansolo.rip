@@ -34,7 +34,7 @@ val hansolo = crossProject.settings(
     "com.timushev" %%% "scalatags-rx" % "0.1.0",
     "com.lihaoyi" %%% "scalarx" % "0.3.0"
   ),
-  bootSnippet := "GameScript().main();",
+  bootSnippet := "rip.hansolo.script.GameScript().main();",
   updateBrowsers <<= updateBrowsers.triggeredBy(fastOptJS in Compile)
 ).jvmSettings(
   Revolver.settings:_*
