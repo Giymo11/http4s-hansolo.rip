@@ -22,6 +22,8 @@ import ScalatagsRxImplicits._
   */
 object RedditPicturesScript extends JSApp {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   val secondsPassed = Var(0)
   val helloWorld = Rx("secondsPassed: " + secondsPassed())
   val timer = {
@@ -52,32 +54,22 @@ object RedditPicturesScript extends JSApp {
     * The Frags sent as Response to the JSON request.
     * Depends on subredditUrl.
     */
-  val responseRx = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    /**
-      * The future of finished Frags to put into the dom.
-      */
-    val futureRx = Rx[Future[Frag]] {
+  val responseRx = Rx[Future[Frag]] {
       Ajax.get(redditUrl + subredditUrl())
-        .map(xhr => JSON.parse(xhr.responseText))
-        .map(json => {
-          val posts: Seq[js.Dynamic] = json.data.children.asInstanceOf[js.Array[js.Dynamic]]
-          (json.kind.asInstanceOf[String], posts.map(_.data.title.asInstanceOf[String]))
-        }).map{ case(kind, titles) =>
-          div(
-            p("Kind: " + kind + ", first child: " + titles.head),
-            ul(titles.map(li(_)))
-          )
-        }.recover { case e =>
-          span(e.getMessage, backgroundColor := "red")
-        }
+      .map(xhr => JSON.parse(xhr.responseText))
+      .map(json => {
+        val posts = json.data.children.asInstanceOf[js.Array[js.Dynamic]].toSeq
+        (json.kind.asInstanceOf[String], posts.map(_.data.title.asInstanceOf[String]))
+      })
+      .map { case(kind, titles) => div(
+          p("Kind: " + kind + ", first child: " + titles.head),
+          ul(titles.map(li(_)))
+      )}
+      .recover { case e => div(e.getMessage, backgroundColor := "red") }
     }
-
-    // this should work, but is currently bugged. To be fixed in scala.rx 0.3.1
+    .map(_.toRx(p("fetching response for " + subredditUrl.now)))
     //futureRx.flatMap(future => futureToRx(future, p("fetching response for " + subredditUrl())))
-    futureRx.map(future => future.toRx(p("fetching response for " + subredditUrl.now)))
-  }
+    // this should work, but is currently bugged. To be fixed in scala.rx 0.3.1
 
   @JSExport
   override def main(): Unit = {
