@@ -57,7 +57,7 @@ object RedditPicturesScript extends JSApp {
   val responseRx = Rx (
     Ajax.get(redditUrl + subredditUrl())
     .map[Option[js.Dynamic]](xhr => Some(JSON.parse(xhr.responseText)))
-    .toRx(None).apply()
+    .toRx(None)
   )
 
   /**
@@ -66,7 +66,7 @@ object RedditPicturesScript extends JSApp {
     */
   val responseFrags: Rx[Frag] = Rx {
 
-    val response = responseRx()
+    val response = responseRx().apply()
 
     println(response)
 
