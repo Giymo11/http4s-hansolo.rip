@@ -51,25 +51,39 @@ object RedditPicturesScript extends JSApp {
   }
 
   /**
-    * The Frags sent as Response to the JSON request.
+    * The JSON received as Response to the AJAX request.
     * Depends on subredditUrl.
     */
-  val responseRx = Rx[Future[Frag]] {
-      Ajax.get(redditUrl + subredditUrl())
-      .map(xhr => JSON.parse(xhr.responseText))
-      .map(json => {
-        val posts = json.data.children.asInstanceOf[js.Array[js.Dynamic]].toSeq
-        (json.kind.asInstanceOf[String], posts.map(_.data.title.asInstanceOf[String]))
-      })
-      .map { case(kind, titles) => div(
-          p("Kind: " + kind + ", first child: " + titles.head),
-          ul(titles.map(li(_)))
-      )}
-      .recover { case e => div(e.getMessage, backgroundColor := "red") }
+  val responseRx = Rx (
+    Ajax.get(redditUrl + subredditUrl())
+    .map[Option[js.Dynamic]](xhr => Some(JSON.parse(xhr.responseText)))
+    .toRx(None).apply()
+  )
+
+  /**
+    * The Frags used to render the response.
+    * Depends on responseRx.
+    */
+  val responseFrags: Rx[Frag] = Rx {
+
+    val response = responseRx()
+
+    println(response)
+
+    val frags = for {
+      json <- response
+    } yield {
+      val posts = json.data.children.asInstanceOf[js.Array[js.Dynamic]].toSeq
+      val kind = json.kind.asInstanceOf[String]
+      val titles = posts.map(_.data.title.asInstanceOf[String])
+      div(
+        p(s"Kind: $kind, first child: ${titles.head}"),
+        ul(titles.map(li(_)))
+      )
     }
-    .map(_.toRx(p("fetching response for " + subredditUrl.now)))
-    //futureRx.flatMap(future => futureToRx(future, p("fetching response for " + subredditUrl())))
-    // this should work, but is currently bugged. To be fixed in scala.rx 0.3.1
+
+    frags.getOrElse(p("fetching response for " + subredditUrl.now))
+  }
 
   @JSExport
   override def main(): Unit = {
@@ -84,7 +98,7 @@ object RedditPicturesScript extends JSApp {
         p(helloWorld),
         queryInput,
         p(subredditUrl),
-        responseRx
+        responseFrags
       ).render
     )
   }
