@@ -1,6 +1,6 @@
 package rip.hansolo.script
 
-import scala.concurrent.{ExecutionContext, Future}
+import rip.hansolo.model.RedditModel._
 
 import scala.scalajs.js
 import scala.scalajs.js.{JSON, JSApp}
@@ -51,38 +51,75 @@ object RedditPicturesScript extends JSApp {
   }
 
   /**
-    * The JSON received as Response to the AJAX request.
+    * The String received as Response to the AJAX request.
     * Depends on subredditUrl.
     */
-  val responseRx = Rx (
+  val responseTextRx = Rx(
     Ajax.get(redditUrl + subredditUrl())
-    .map[Option[js.Dynamic]](xhr => Some(JSON.parse(xhr.responseText)))
-    .toRx(None)
-  )
+      .map[Option[String]](xhr => Some(xhr.responseText))
+      .toRx(None)
+    ) map (_.apply()) // needed until flatMap works.
+
+  /**
+    * The JS Object received as Response to the AJAX request.
+    * Depends on responseTextRx.
+    */
+  val responseJsonRx: Rx[Option[js.Dynamic]] = responseTextRx map (_ map (JSON parse _))
+
+  /**
+    * The case class extracted from the AJAX request.
+    * depends on responseTextRx
+    */
+  val responseRedditRx: Rx[Option[Data]] = responseTextRx map (_ map (str => Description.fromValue(str)))
+
+  val responseFrags2: Rx[Frag] = Rx {
+    val response = responseRedditRx()
+
+
+    val frags = for {
+      description <- response
+    } yield {
+      //val kind = description.kind
+      //val posts = description.data.asInstanceOf[Listing].children.map(_.data.asInstanceOf[T3])
+      div(
+        description.toString
+      )
+    }
+  }
 
   /**
     * The Frags used to render the response.
-    * Depends on responseRx.
+    * Depends on responseJsonRx.
     */
   val responseFrags: Rx[Frag] = Rx {
 
-    val response = responseRx().apply()
+    val response = responseJsonRx()
 
     println(response)
 
     val frags = for {
       json <- response
     } yield {
+      dom.console.dir(json)
       val posts = json.data.children.asInstanceOf[js.Array[js.Dynamic]].toSeq
       val kind = json.kind.asInstanceOf[String]
       val titles = posts.map(_.data.title.asInstanceOf[String])
       div(
         p(s"Kind: $kind, first child: ${titles.head}"),
-        ul(titles.map(li(_)))
+        ul(
+          titles.map(li(_))
+        )
       )
     }
 
     frags.getOrElse(p("fetching response for " + subredditUrl.now))
+  }
+
+  val compareResponses = Rx {
+    div(
+      p(s"Data1: " + responseRedditRx())
+      //p(s"Data2: " + responseRedditRx2())
+    )
   }
 
   @JSExport
@@ -98,7 +135,8 @@ object RedditPicturesScript extends JSApp {
         p(helloWorld),
         queryInput,
         p(subredditUrl),
-        responseFrags
+        responseFrags,
+        compareResponses
       ).render
     )
   }
