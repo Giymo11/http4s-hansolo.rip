@@ -61,65 +61,32 @@ object RedditPicturesScript extends JSApp {
     ) map (_.apply()) // needed until flatMap works.
 
   /**
-    * The JS Object received as Response to the AJAX request.
-    * Depends on responseTextRx.
-    */
-  val responseJsonRx: Rx[Option[js.Dynamic]] = responseTextRx map (_ map (JSON parse _))
-
-  /**
     * The case class extracted from the AJAX request.
     * depends on responseTextRx
     */
   val responseRedditRx: Rx[Option[Data]] = responseTextRx map (_ map (str => Description.fromValue(str)))
 
-  val responseFrags2: Rx[Frag] = Rx {
-    val response = responseRedditRx()
-
-
-    val frags = for {
-      description <- response
-    } yield {
-      //val kind = description.kind
-      //val posts = description.data.asInstanceOf[Listing].children.map(_.data.asInstanceOf[T3])
-      div(
-        description.toString
-      )
-    }
-  }
-
   /**
-    * The Frags used to render the response.
-    * Depends on responseJsonRx.
+    * The Frags generated dynamically from the RedditModel
+    * depends on responseRedditRx.
     */
   val responseFrags: Rx[Frag] = Rx {
-
-    val response = responseJsonRx()
-
-    println(response)
-
-    val frags = for {
-      json <- response
-    } yield {
-      dom.console.dir(json)
-      val posts = json.data.children.asInstanceOf[js.Array[js.Dynamic]].toSeq
-      val kind = json.kind.asInstanceOf[String]
-      val titles = posts.map(_.data.title.asInstanceOf[String])
-      div(
-        p(s"Kind: $kind, first child: ${titles.head}"),
-        ul(
-          titles.map(li(_))
-        )
+    implicit def data2frag(data: Data): Frag = data match {
+      case listing: Listing => ul(
+        listing.children.map(li(_))
       )
+      case selfpost: Selfpost => span(selfpost.title, p(selfpost.selftext))
+      case linkpost: Linkpost => span(linkpost.title + " - ", a("link", href := linkpost.url))
+      case _ => span("Should not happen!", backgroundColor := "red")
     }
 
-    frags.getOrElse(p("fetching response for " + subredditUrl.now))
-  }
-
-  val compareResponses = Rx {
-    div(
-      p(s"Data1: " + responseRedditRx())
-      //p(s"Data2: " + responseRedditRx2())
+    val frags = for {
+      description <- responseRedditRx()
+    } yield div(
+      description
     )
+
+    frags.getOrElse(p("fetching response for " + subredditUrl.now))
   }
 
   @JSExport
@@ -135,8 +102,7 @@ object RedditPicturesScript extends JSApp {
         p(helloWorld),
         queryInput,
         p(subredditUrl),
-        responseFrags,
-        compareResponses
+        responseFrags
       ).render
     )
   }

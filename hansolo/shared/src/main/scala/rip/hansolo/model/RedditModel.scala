@@ -30,8 +30,8 @@ object RedditModel {
   }
 
 
+  // cannot be sealded, as upickle then searches for a tagged class.
   trait Data
-
   object Data {
     def fromValue(value: Js.Value, kind: String): Data = kind match {
       case "Listing" => Listing.fromValue(value)
@@ -46,7 +46,6 @@ object RedditModel {
                       before: Option[String],
                       modhash: String, children:
                       Seq[Data]) extends Data
-
   object Listing {
     def fromValue(value: Js.Value) = Listing(
       value("after"),
@@ -80,15 +79,29 @@ object RedditModel {
                  title: String,
                  url: String
                ) extends Data
-
   object T3 {
-    def fromValue(value: Js.Value) = Try(
-      upickle.default.read[T3](write(value))
-    ) recover {
+    def fromValue(value: Js.Value) = Try {
+      val t3 = upickle.default.read[T3](write(value))
+      if(t3.is_self) Selfpost(t3.author, t3.score, t3.selftext, t3.title) else Linkpost(t3.author, t3.score, t3.url, t3.title)
+    } recover {
       case e: upickle.Invalid.Json => NoData("Invalid Json: " + e.msg)
       case e: upickle.Invalid.Data => NoData("Invalid Data: " + e.msg)
     } getOrElse NoData("Could not read T3")
   }
+
+  case class Selfpost(
+                     val author: String,
+                     val score: Int,
+                     val selftext: String,
+                     val title: String
+                     ) extends Data
+
+  case class Linkpost(
+                     val author: String,
+                     val score: Int,
+                     val url: String,
+                     val title: String
+                     ) extends Data
 
   case class NoData(message: String) extends Data
 }
