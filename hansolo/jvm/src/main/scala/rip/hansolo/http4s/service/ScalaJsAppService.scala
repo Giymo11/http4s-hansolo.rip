@@ -11,13 +11,19 @@ import scalatags.Text.tags2
   * Created by Giymo11 on 09.02.2016.
   */
 object ScalaJsAppService {
-  def apply(title: String, sjsMainObject: String): HttpService = HttpService {
+  def apply(title: String, sjsMainObject: String, useMdl: Boolean): HttpService = HttpService {
     case req @ GET -> Root =>
       Ok(
         html(
           head(
+            if(useMdl) Seq[Frag](
+              link(rel := "stylesheet", href := "https://fonts.googleapis.com/icon?family=Material+Icons"),
+              link(rel := "stylesheet", href := "https://code.getmdl.io/1.1.1/material.indigo-pink.min.css"),
+              script(src := "https://code.getmdl.io/1.1.1/material.min.js", "defer".attr := true)
+            ) else Seq[Frag](),
             tags2.title(title),
-            meta(httpEquiv := "Content-Type", content := "text/html", charset := "UTF-8")
+            meta(httpEquiv := "Content-Type", content := "text/html", charset := "UTF-8"),
+            meta(name := "viewport", content := "width=device-width, initial-scale=1.0")
           ),
           body(margin := 0),
           script(`type` := "text/javascript", src := "/public/scala-js-fastopt.js"),
@@ -25,4 +31,5 @@ object ScalaJsAppService {
         ).render
       ).withContentType(Some(`Content-Type`(`text/html`)))
   }
+  def apply(title: String, sjsMainObject: String): HttpService = apply(title, sjsMainObject, useMdl = false)
 }

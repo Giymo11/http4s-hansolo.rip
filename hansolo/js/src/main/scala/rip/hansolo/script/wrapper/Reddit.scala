@@ -4,6 +4,7 @@ package rip.hansolo.script.wrapper
   * Created by Giymo11 on 12.02.2016.
   */
 
+import org.scalajs.dom
 import org.scalajs.dom.XMLHttpRequest
 import org.scalajs.dom.ext.Ajax
 import rip.hansolo.model.RedditModel.{Thing, Data}
@@ -11,6 +12,8 @@ import rip.hansolo.script.util.UriUtils._
 import rx._
 import rx.async._
 
+import scala.scalajs.js
+import scala.util.Try
 import scalatags.JsDom.all._
 
 case class ImplicitOauth(mobile: Boolean, clientId: String, redirectUri: String, scope: Seq[String])
@@ -20,13 +23,6 @@ case class Reddit(userAgent: String, oauth: ImplicitOauth)(implicit ctx: Ctx.Own
     case Some(subreddit) if subreddit != subredditUrl.now => subredditUrl() = subreddit
     case _ => // do nothing
   }
-
-  def authLinkRx: Rx[Frag] = Rx { div(
-      accessToken() match {
-        case Some(token) => span(s"Already authenticated! Token: $token")
-        case None => a("Click here to authenticate", href := getImplicitAuthUrl(subredditUrl()))
-      }
-  )}
 
   def attemptAuth(token: Option[String], expires: Option[Int]): Unit = attemptAuth(token)
 
@@ -38,8 +34,11 @@ case class Reddit(userAgent: String, oauth: ImplicitOauth)(implicit ctx: Ctx.Own
   private val accessToken = Var[Option[String]](None)
   private val subredditUrl = Var[String]("/r/reddit_api_test.json")
   val state: Rx[String] = subredditUrl
+  val isAuthed = Rx[Boolean](accessToken().isDefined)
 
-  def getImplicitAuthUrl(state: String): String = {
+  def getImplicitAuthUrl: String = {
+    val state = subredditUrl.now
+
     val params: Map[String, String] = Map(
       "client_id" -> oauth.clientId,
       "redirect_uri" -> oauth.redirectUri,
@@ -70,7 +69,7 @@ case class Reddit(userAgent: String, oauth: ImplicitOauth)(implicit ctx: Ctx.Own
       case _ =>           (Map(),                                     redditUrl)
     }
 
-    Ajax.get(baseUrl + subredditUrl(), headers = headers)
+    Ajax.get(baseUrl + subredditUrl() + "?raw_json=1", headers = headers)
       .map[Option[XMLHttpRequest]](Some(_))
       .toRx(None)
   } map (_.apply()) // needed until flatMap works
@@ -80,9 +79,12 @@ case class Reddit(userAgent: String, oauth: ImplicitOauth)(implicit ctx: Ctx.Own
   val ratelimitUsed = Var[String]("0")
 
   val x = responseRx.foreach(_ foreach (xhr => {
-    ratelimitRemaining() = xhr.getResponseHeader("x-ratelimit-remaining")
-    ratelimitReset() = xhr.getResponseHeader("x-ratelimit-reset")
-    ratelimitUsed() = xhr.getResponseHeader("x-ratelimit-used")
+    // status 2 = HEADERS_RECEIVED
+    if(xhr.readyState >= 2) Try {
+      ratelimitRemaining() = xhr.getResponseHeader("x-ratelimit-remaining")
+      ratelimitReset() = xhr.getResponseHeader("x-ratelimit-reset")
+      ratelimitUsed() = xhr.getResponseHeader("x-ratelimit-used")
+    }
   }))
 
   /**

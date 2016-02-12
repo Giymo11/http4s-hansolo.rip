@@ -6,16 +6,20 @@ import rip.hansolo.script.wrapper._
 import rip.hansolo.script.util.UriUtils._
 import rip.hansolo.script.util.ScalatagsRxImplicits._
 
+import scala.scalajs.js
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExport
 
 import org.scalajs.dom
 import org.scalajs.dom.raw.{HashChangeEvent, Event}
 
+import scala.util.Try
 import scalatags.JsDom.all._
 
 import rx._
 import rx.async._
+
+import util.ScalatagsRxImplicits.MdlConverter._
 
 
 /**
@@ -90,14 +94,25 @@ object RedditPicturesScript extends JSApp {
           // the data2frag recursion would be inferred by sbt, but not by intellij.
           listing.children.map(xs => li(data2frag(xs)))
         )
-        case t3: T3 => div(
+        case t3: T3 => Try(
+          div(
             div("Score: ", span(t3.link.score), " - ", span(t3.link.title)),
-            img(
-              src := t3.link.preview.images.head.source.url,
-              maxHeight := 100.pct,
-              width := 100.pct
-            )
+            if(t3.link.is_self) {
+              p(raw(t3.link.selftext_html))
+            } else {
+              if(t3.media.isDefined)
+                div(raw(t3.media.get.oembed.html))
+              else if(t3.preview.isDefined)
+                img(
+                  src := t3.preview.get.images.head.source.url,
+                  maxHeight := "80vh",
+                  maxWidth := 100.pct)
+              else
+                div(a(href := t3.link.url))}
           )
+        ).recover {
+          case e: Exception => div(span("Exception: " + e))
+        }.get
         //case linkpost: Linkpost => span(linkpost.title + " - ", a("link", href := linkpost.url))
         case NoData(msg) => span("NoData: " + msg, backgroundColor := "red")
         case _ => span("Should not happen!", backgroundColor := "red")
@@ -110,22 +125,58 @@ object RedditPicturesScript extends JSApp {
       frags.getOrElse(p("fetching response for " + reddit.state.now))
     }
 
+    val authLinkRx: Rx[Frag] = Rx { div(
+      reddit.isAuthed() match {
+        case true => span(s"Already authenticated!")
+        case false => div(
+          button("Authenticate",
+            onclick := { () => dom.window.location.href = reddit.getImplicitAuthUrl},
+            cls := "mdl-button mdl-js-button mdl-button--primary mdl-js-ripple-effect"),
+          a("Authenticate", href := reddit.getImplicitAuthUrl)
+        )
+      }
+    )}
+
+    val mainTag = "main".tag[dom.html.Element]
+    val styleTag = "style".tag[dom.html.Element]
+
     val body = dom.document.body
     body.innerHTML = ""
-    body.appendChild(
-      div(id := "scalatags",
-        p(helloWorld),
-        reddit.authLinkRx,
-        div(
-          div("Remaining: ", reddit.ratelimitRemaining),
-          div("Used: ", reddit.ratelimitUsed),
-          div("Reset: ", reddit.ratelimitReset)
+    val child = div(
+      styleTag("type".attr := "text/css",
+        raw(".mdl-layout__tab-bar-button { background-color: transparent; }"),
+        "scoped".attr := true),
+      div(cls := "mdl-layout mdl-js-layout mdl-layout--fixed-header",
+        header(cls := "mdl-layout__header",
+          background := "url('http://i.imgur.com/lvuZhX4.jpg') center",
+          div(cls := "mdl-layout__header-row",
+            backgroundColor := "transparent",
+            span(cls := "mdl-layout-title", reddit.state)),
+          div(cls := "mdl-layout__tab-bar mdl-js-ripple-effect",
+            backgroundColor := "transparent",
+            for(i <- 1 to 5) yield a(s"Tab $i",
+              href := s"#scroll-tab-$i", cls := "mdl-layout__tab" + (if(i == 1) " is-active" else ""))
+          )
         ),
-        queryInput,
-        p(reddit.state),
-        //pre(reddit.responseTextRx),
-        responseFrags
-      ).render
-    )
+
+        mainTag(cls := "mdl-layout__content",
+          div(id := "scalatags",
+            p(helloWorld),
+            authLinkRx,
+            div(
+              div("Remaining: ", reddit.ratelimitRemaining),
+              div("Used: ", reddit.ratelimitUsed),
+              div("Reset: ", reddit.ratelimitReset)),
+            queryInput,
+            p(reddit.state),
+            //pre(reddit.responseTextRx),
+            responseFrags
+          )
+        )
+      )
+    ).render
+    val upgrader = js.Dynamic.global.componentUpgrader
+      if(!js.isUndefined(upgrader)) upgrader.upgradeElement(child)
+    body.appendChild(child)
   }
 }

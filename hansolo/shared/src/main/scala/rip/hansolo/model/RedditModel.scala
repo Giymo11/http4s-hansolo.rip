@@ -85,8 +85,7 @@ object RedditModel {
                  url: String,
                  //edited: Double, this is either Boolean or Long...
                  distinguished: String,
-                 stickied: Boolean,
-                 preview: Preview
+                 stickied: Boolean
                  )
   case class Preview(images: Seq[Image])
   case class Image(source: Resolution)
@@ -95,17 +94,38 @@ object RedditModel {
                        width: Int,
                        url: String
                        )
+  case class Media(oembed: OEmbed, `type`: String)
+  case class OEmbed(
+                    //author_name: String,    youtube only
+                    //author_url: String,       youtube only
+                    description: String,
+                    html: String,
+                    provider_name: String,
+                    provider_url: String,
+                    thumbnail_url: String,
+                    title: String,
+                    `type`: String,
+                    //  url: String,      youtub only
+                    version: String
+                    )
+
   case class T3(
                 votable: Votable,
                 created: Created,
-                link: Link
+                link: Link,
+                preview: Option[Preview],
+                media: Option[Media]
                ) extends Data
   object T3 {
     def fromValue(value: Js.Value) = Try {
       val votable = upickle.default.read[Votable](write(value))
       val created = upickle.default.read[Created](write(value))
       val link = upickle.default.read[Link](write(value))
-      T3(votable, created, link)
+      val pairs = value.asInstanceOf[Obj].value
+      val preview = pairs.find(_._1 == "preview").map(_._2).map(opt => upickle.default.read[Preview](write(opt))).flatMap(Option(_)) // flatmap because you can still get an Option[Media] with Null
+      val media = pairs.find(_._1 == "media").map(_._2).map(opt => upickle.default.read[Media](write(opt))).flatMap(Option(_))
+
+      T3(votable, created, link, preview, media)
     } recover {
       case e: upickle.Invalid.Json => NoData("Invalid Json: " + e.msg)
       case e: upickle.Invalid.Data => NoData("Invalid Data: " + e.msg + e.data)
