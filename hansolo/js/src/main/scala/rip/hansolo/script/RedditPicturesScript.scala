@@ -34,7 +34,7 @@ object RedditPicturesScript extends JSApp {
       ImplicitOauth(
         mobile = false,
         clientId = Config.clientId,
-        redirectUri = "http://localhost/reddit",
+        redirectUri = Config.redirectUrl,
         scope = Seq("identity", "read")))
 
     val queryParams = fromQueryParams(dom.window.location.href)

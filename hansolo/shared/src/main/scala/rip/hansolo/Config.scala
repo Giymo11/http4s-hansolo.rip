@@ -5,4 +5,5 @@ package rip.hansolo
   */
 object Config {
   val clientId = "i7UFQCjP-liV-A"
+  val redirectUrl = "http://localhost/reddit"
 }
