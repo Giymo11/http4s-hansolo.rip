@@ -1,5 +1,6 @@
 package rip.hansolo.script
 
+import rip.hansolo.Config
 import rip.hansolo.model.RedditModel._
 import rip.hansolo.script.wrapper._
 import rip.hansolo.script.util.UriUtils._
@@ -15,8 +16,6 @@ import scalatags.JsDom.all._
 
 import rx._
 import rx.async._
-
-import scalatags.Text.short.*
 
 
 /**
@@ -34,7 +33,7 @@ object RedditPicturesScript extends JSApp {
       userAgent = "scala-js:ripp.hansolo:v1 (by /u/Giymo11)",
       ImplicitOauth(
         mobile = false,
-        clientId = "i7UFQCjP-liV-A",
+        clientId = Config.clientId,
         redirectUri = "http://localhost/reddit",
         scope = Seq("identity", "read")))
 
