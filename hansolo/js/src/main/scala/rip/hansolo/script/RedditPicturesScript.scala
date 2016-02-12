@@ -110,8 +110,6 @@ object RedditPicturesScript extends JSApp {
       frags.getOrElse(p("fetching response for " + reddit.state.now))
     }
 
-    println("Hello?")
-
     val body = dom.document.body
     body.innerHTML = ""
     body.appendChild(
