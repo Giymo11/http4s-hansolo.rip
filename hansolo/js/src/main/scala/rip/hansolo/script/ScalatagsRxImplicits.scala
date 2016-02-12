@@ -43,4 +43,9 @@ object ScalatagsRxImplicits {
       r.trigger{ implicitly[AttrValue[T]].apply(t, a, r.now) }
     }
   }
+  implicit def RxDynamicAttrValue[T: AttrValue] = new AttrValue[Rx.Dynamic[T]]{
+    def apply(t: Element, a: Attr, r: Rx.Dynamic[T]): Unit = {
+      r.trigger{ implicitly[AttrValue[T]].apply(t, a, r.now) }
+    }
+  }
 }

@@ -23,7 +23,8 @@ val hansolo = crossProject.settings(
   libraryDependencies ++= Seq(
     "com.lihaoyi" %%% "upickle" % "0.3.8",
     "com.lihaoyi" %%% "autowire" % "0.2.5",
-    "com.lihaoyi" %%% "scalatags" % "0.5.4"
+    "com.lihaoyi" %%% "scalatags" % "0.5.4",
+    "com.chuusai" %%% "shapeless" % "2.2.5"
   )
 ).jsSettings(
   workbenchSettings:_*
@@ -49,7 +50,6 @@ val hansolo = crossProject.settings(
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-argonaut" % http4sVersion,
     "org.scalaz" %% "scalaz-core" % scalazCoreVersion,
-    "com.chuusai" %% "shapeless" % "2.2.5",
     "com.github.japgolly.scalacss" %% "core" % scalaCssVersion,
     "com.github.japgolly.scalacss" %% "ext-scalatags" % scalaCssVersion,
     "com.typesafe.play" % "play-json_2.11" % "2.4.6"
