@@ -1,7 +1,7 @@
-package rip.hansolo.script
+package rip.hansolo.script.util
 
 import org.scalajs.dom.Element
-import rx.{Var, Rx}
+import rx.{Rx, Var}
 
 import scala.scalajs.js
 import scalatags.JsDom.all._
