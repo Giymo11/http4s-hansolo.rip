@@ -10,24 +10,19 @@ import scala.scalajs.js.annotation.JSExport
 
 import org.scalajs.dom
 import org.scalajs.dom.raw.{HashChangeEvent, Event}
-import org.scalajs.dom.ext.Ajax
 
-import scala.util.Try
 import scalatags.JsDom.all._
 
 import rx._
 import rx.async._
+
+import scalatags.Text.short.*
 
 
 /**
   * Created by Giymo11 on 09.02.2016.
   */
 object RedditPicturesScript extends JSApp {
-
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-
-  val redditUrl = "https://www.reddit.com"
 
   @JSExport
   override def main(): Unit = {
@@ -43,8 +38,6 @@ object RedditPicturesScript extends JSApp {
         redirectUri = "http://localhost/reddit",
         scope = Seq("identity", "read")))
 
-
-
     val queryParams = fromQueryParams(dom.window.location.href)
     dom.window.location.hash = ""
 
@@ -53,7 +46,7 @@ object RedditPicturesScript extends JSApp {
     reddit.attemptAuth(accessToken, queryParams.get("expires_in").map(_.toInt))
     reddit.subredditChanged(queryParams.get("state"))
 
-    reddit.subredditUrl.foreach(subreddit => {
+    reddit.state.foreach(subreddit => {
       val newMap = fromQueryParams(dom.window.location.hash) + ("state" -> subreddit)
       dom.window.location.hash = "#" + toQueryParams(newMap)
     })
@@ -69,7 +62,7 @@ object RedditPicturesScript extends JSApp {
       */
     val queryInput = input(
       id := "query-input",
-      placeholder := reddit.subredditUrl,
+      placeholder := reddit.state,
       autofocus := true
     ).render
 
@@ -89,22 +82,6 @@ object RedditPicturesScript extends JSApp {
     timer triggerLater {secondsPassed() = secondsPassed.now + 1}
 
     /**
-      * The String received as Response to the AJAX request.
-      * Depends on subredditUrl.
-      */
-    val responseTextRx = Rx(
-      Ajax.get(redditUrl + reddit.subredditUrl())
-        .map[Option[String]](xhr => Some(xhr.responseText))
-        .toRx(None)
-    ) map (_.apply()) // needed until flatMap works.
-
-    /**
-      * The case class extracted from the AJAX request.
-      * depends on responseTextRx
-      */
-    val responseRedditRx: Rx[Option[Data]] = responseTextRx map (_ map (str => Description.fromValue(str)))
-
-    /**
       * The Frags generated dynamically from the RedditModel
       * depends on responseRedditRx.
       */
@@ -114,18 +91,24 @@ object RedditPicturesScript extends JSApp {
           // the data2frag recursion would be inferred by sbt, but not by intellij.
           listing.children.map(xs => li(data2frag(xs)))
         )
-        case selfpost: Selfpost => span(selfpost.title, p(selfpost.selftext))
-        case linkpost: Linkpost => span(linkpost.title + " - ", a("link", href := linkpost.url))
+        case t3: T3 => div(
+            div("Score: ", span(t3.link.score), " - ", span(t3.link.title)),
+            img(
+              src := t3.link.preview.images.head.source.url,
+              maxHeight := 100.pct,
+              width := 100.pct
+            )
+          )
+        //case linkpost: Linkpost => span(linkpost.title + " - ", a("link", href := linkpost.url))
+        case NoData(msg) => span("NoData: " + msg, backgroundColor := "red")
         case _ => span("Should not happen!", backgroundColor := "red")
       }
-
       val frags = for {
-        description <- responseRedditRx()
+        description <- reddit.responseRedditRx()
       } yield div(
         description
       )
-
-      frags.getOrElse(p("fetching response for " + reddit.subredditUrl.now))
+      frags.getOrElse(p("fetching response for " + reddit.state.now))
     }
 
     println("Hello?")
@@ -136,8 +119,14 @@ object RedditPicturesScript extends JSApp {
       div(id := "scalatags",
         p(helloWorld),
         reddit.authLinkRx,
+        div(
+          div("Remaining: ", reddit.ratelimitRemaining),
+          div("Used: ", reddit.ratelimitUsed),
+          div("Reset: ", reddit.ratelimitReset)
+        ),
         queryInput,
-        p(reddit.subredditUrl),
+        p(reddit.state),
+        //pre(reddit.responseTextRx),
         responseFrags
       ).render
     )

@@ -18,18 +18,6 @@ object RedditModel {
     }
   }
 
-  case class Description(kind: String, data: Data) extends Data
-  object Description {
-
-    def fromValue(str: String): Data = fromValue(read(str))
-
-    def fromValue(value: Js.Value): Data = {
-      val kind = value("kind").asInstanceOf[Str].value
-      Data.fromValue(value("data"), kind)
-    }
-  }
-
-
   // cannot be sealded, as upickle then searches for a tagged class.
   trait Data
   object Data {
@@ -40,68 +28,89 @@ object RedditModel {
     }
   }
 
+  case class Thing(kind: String, data: Data) extends Data
+  object Thing {
+
+    def fromValue(str: String): Data = fromValue(read(str))
+
+    def fromValue(value: Js.Value): Data = {
+      val kind = value("kind").asInstanceOf[Str].value
+      Data.fromValue(value("data"), kind)
+    }
+  }
+
 
   case class Listing(
                       val after: Option[String],
-                      before: Option[String],
-                      modhash: String, children:
-                      Seq[Data]) extends Data
+                      val before: Option[String],
+                      val children: Seq[Data]) extends Data
   object Listing {
     def fromValue(value: Js.Value) = Listing(
       value("after"),
       value("before"),
-      value("modhash").asInstanceOf[Str].value,
-      value("children").asInstanceOf[Arr].value.map(Description.fromValue)
+      value("children").asInstanceOf[Arr].value.map(Thing.fromValue)
     )
   }
 
+  case class Votable(ups: Int, downs: Int, likes: Boolean)
+  case class Created(created: Double, created_utc: Double)
 
-  case class T3(
-                 archived: Boolean,
+  case class Link(
+                 title: String,
+                 score: Int,
+
                  author: String,
-                 created_utc: Double,
+                 // author_flair_css_class: String,
+                 author_flair_text: String,
+                 // clicked: Boolean,
                  domain: String,
-                 edited: Boolean,
-                 gilded: Int,
-                 hide_score: Boolean,
-                 id: String,
+                 hidden: Boolean,
                  is_self: Boolean,
+                 // link_flair_css: Boolean,
+                 link_flair_text: String,
                  locked: Boolean,
-                 name: String,
+                 // media
+                 // media_embed
                  num_comments: Int,
                  over_18: Boolean,
                  permalink: String,
-                 score: Int,
-                 selftext: String,
-                 stickied: Boolean,
+                 saved: Boolean,
+
+                 // selftext: String,
+                 selftext_html: String,
                  subreddit: String,
+                 // subreddit_id: String,
                  thumbnail: String,
-                 title: String,
-                 url: String
+
+                 url: String,
+                 //edited: Double, this is either Boolean or Long...
+                 distinguished: String,
+                 stickied: Boolean,
+                 preview: Preview
+                 )
+  case class Preview(images: Seq[Image])
+  case class Image(source: Resolution)
+  case class Resolution(
+                       height: Int,
+                       width: Int,
+                       url: String
+                       )
+  case class T3(
+                votable: Votable,
+                created: Created,
+                link: Link
                ) extends Data
   object T3 {
     def fromValue(value: Js.Value) = Try {
-      val t3 = upickle.default.read[T3](write(value))
-      if(t3.is_self) Selfpost(t3.author, t3.score, t3.selftext, t3.title) else Linkpost(t3.author, t3.score, t3.url, t3.title)
+      val votable = upickle.default.read[Votable](write(value))
+      val created = upickle.default.read[Created](write(value))
+      val link = upickle.default.read[Link](write(value))
+      T3(votable, created, link)
     } recover {
       case e: upickle.Invalid.Json => NoData("Invalid Json: " + e.msg)
-      case e: upickle.Invalid.Data => NoData("Invalid Data: " + e.msg)
+      case e: upickle.Invalid.Data => NoData("Invalid Data: " + e.msg + e.data)
     } getOrElse NoData("Could not read T3")
   }
-
-  case class Selfpost(
-                     val author: String,
-                     val score: Int,
-                     val selftext: String,
-                     val title: String
-                     ) extends Data
-
-  case class Linkpost(
-                     val author: String,
-                     val score: Int,
-                     val url: String,
-                     val title: String
-                     ) extends Data
 
   case class NoData(message: String) extends Data
 }
