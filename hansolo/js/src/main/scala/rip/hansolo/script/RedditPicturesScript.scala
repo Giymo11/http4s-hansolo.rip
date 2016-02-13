@@ -76,9 +76,9 @@ object RedditPicturesScript extends JSApp {
       */
     val responseFrags: Rx[Frag] = Rx {
       implicit def data2frag(data: Data): Frag = data match {
-        case listing: Listing => ul(
+        case listing: Listing => div(
           // the data2frag recursion would be inferred by sbt, but not by intellij.
-          listing.children.map(xs => li(data2frag(xs)))
+          listing.children.map(xs => data2frag(xs))
         )
         case t3: T3 => Try(
           div(
@@ -113,16 +113,26 @@ object RedditPicturesScript extends JSApp {
 
     reddit.responseRedditRx.foreach(_ => secondsPassed() = 0)
 
-    val authLinkRx: Rx[Frag] = Rx { div(
-      reddit.isAuthed() match {
-        case true => span(s"Already authenticated!")
-        case false => div(
-          button("Authenticate",
-            onclick := { () => dom.window.location.href = reddit.getImplicitAuthUrl},
-            cls := "mdl-button mdl-js-button mdl-button--primary mdl-js-ripple-effect")
-        )
-      }
-    )}
+    val drawerContent: Rx[Frag] = Rx {
+      div(
+        div(cls := "mdl-layout__header-row",
+          backgroundColor := "transparent",
+          padding := 0,
+          div(cls := "mdl-layout-spacer"),
+          reddit.isAuthed() match {
+            case true => h6(margin := 0,
+              s"Already authenticated!")
+            case false => button("Authenticate",
+              onclick := { () => dom.window.location.href = reddit.getImplicitAuthUrl },
+              cls := "mdl-button mdl-js-button mdl-button--primary mdl-js-ripple-effect")
+          },
+          div(cls := "mdl-layout-spacer")
+        ),
+        div(
+          div("Remaining: ", reddit.ratelimitRemaining),
+          div("Used: ", reddit.ratelimitUsed),
+          div("Reset: ", reddit.ratelimitReset)))
+    }
 
     val mainTag = "main".tag[dom.html.Element]
     val styleTag = "style".tag[dom.html.Element]
@@ -175,16 +185,13 @@ object RedditPicturesScript extends JSApp {
           )
         ),
         div(cls := "mdl-layout__drawer",
-          div(
-            authLinkRx,
-            div(
-              div("Remaining: ", reddit.ratelimitRemaining),
-              div("Used: ", reddit.ratelimitUsed),
-              div("Reset: ", reddit.ratelimitReset)))),
+          drawerContent),
         mainTag(cls := "mdl-layout__content",
-          div(id := "scalatags",
-            p(reddit.state),
-            responseFrags
+          // TODO: think about super-widescreen usage
+          div(cls := "mdl-grid",
+            div(cls := "mdl-cell mdl-cell--8-col mdl-cell--2-offset-desktop",
+              responseFrags
+            )
           )
         )
       )
