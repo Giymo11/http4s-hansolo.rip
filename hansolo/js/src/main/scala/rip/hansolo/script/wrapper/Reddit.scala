@@ -4,7 +4,6 @@ package rip.hansolo.script.wrapper
   * Created by Giymo11 on 12.02.2016.
   */
 
-import org.scalajs.dom
 import org.scalajs.dom.XMLHttpRequest
 import org.scalajs.dom.ext.Ajax
 import rip.hansolo.model.RedditModel.{Thing, Data}
@@ -12,9 +11,7 @@ import rip.hansolo.script.util.UriUtils._
 import rx._
 import rx.async._
 
-import scala.scalajs.js
 import scala.util.Try
-import scalatags.JsDom.all._
 
 case class ImplicitOauth(mobile: Boolean, clientId: String, redirectUri: String, scope: Seq[String])
 
@@ -24,9 +21,7 @@ case class Reddit(userAgent: String, oauth: ImplicitOauth)(implicit ctx: Ctx.Own
     case _ => // do nothing
   }
 
-  def attemptAuth(token: Option[String], expires: Option[Int]): Unit = attemptAuth(token)
-
-  def attemptAuth(opt: Option[String]): Unit = opt match {
+  def attemptAuth(tokenOpt: Option[String], expires: Option[Int] = None): Unit = tokenOpt match {
     case Some(token) if !accessToken.now.contains(token) => accessToken() = Some(token)
     case _ => // do nothing
   }

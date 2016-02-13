@@ -11,7 +11,7 @@ import scalatags.Text.tags2
   * Created by Giymo11 on 09.02.2016.
   */
 object ScalaJsAppService {
-  def apply(title: String, sjsMainObject: String, useMdl: Boolean): HttpService = HttpService {
+  def apply(title: String, sjsMainObject: String, useMdl: Boolean = false): HttpService = HttpService {
     case req @ GET -> Root =>
       Ok(
         html(
@@ -19,6 +19,7 @@ object ScalaJsAppService {
             if(useMdl) Seq[Frag](
               link(rel := "stylesheet", href := "https://fonts.googleapis.com/icon?family=Material+Icons"),
               link(rel := "stylesheet", href := "https://code.getmdl.io/1.1.1/material.indigo-pink.min.css"),
+              link(rel := "stylesheet", href := "http://fonts.googleapis.com/css?family=Roboto:300,400,500,700"),
               script(src := "https://code.getmdl.io/1.1.1/material.min.js", "defer".attr := true)
             ) else Seq[Frag](),
             tags2.title(title),
@@ -31,5 +32,4 @@ object ScalaJsAppService {
         ).render
       ).withContentType(Some(`Content-Type`(`text/html`)))
   }
-  def apply(title: String, sjsMainObject: String): HttpService = apply(title, sjsMainObject, useMdl = false)
 }

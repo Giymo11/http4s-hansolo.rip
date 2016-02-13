@@ -1,5 +1,6 @@
 package rip.hansolo.script
 
+import org.scalajs.dom.html.Input
 import rip.hansolo.Config
 import rip.hansolo.model.RedditModel._
 import rip.hansolo.script.wrapper._
@@ -34,7 +35,7 @@ object RedditPicturesScript extends JSApp {
     import Ctx.Owner.Unsafe._
 
     val reddit = Reddit(
-      userAgent = "scala-js:ripp.hansolo:v1 (by /u/Giymo11)",
+      userAgent = "scala-js:rip.hansolo:v1 (by /u/Giymo11)",
       ImplicitOauth(
         mobile = false,
         clientId = Config.clientId,
@@ -58,21 +59,6 @@ object RedditPicturesScript extends JSApp {
     dom.window.onhashchange = (e: HashChangeEvent) => {
       println("Hash changed: " + e.newURL)
       reddit.subredditChanged(fromQueryParams(e.newURL).get("state"))
-    }
-
-    /**
-      * The input field to put enter the query
-      */
-    val queryInput = input(
-      id := "query-input",
-      placeholder := reddit.state,
-      autofocus := true
-    ).render
-
-    // onchange is fired e.g. when pressing enter or losing focus
-    queryInput.onchange = (e: Event) => {
-      reddit.subredditChanged(Some(queryInput.value))
-      queryInput.value = ""
     }
 
     val secondsPassed = Var(0)
@@ -125,14 +111,15 @@ object RedditPicturesScript extends JSApp {
       frags.getOrElse(p("fetching response for " + reddit.state.now))
     }
 
+    reddit.responseRedditRx.foreach(_ => secondsPassed() = 0)
+
     val authLinkRx: Rx[Frag] = Rx { div(
       reddit.isAuthed() match {
         case true => span(s"Already authenticated!")
         case false => div(
           button("Authenticate",
             onclick := { () => dom.window.location.href = reddit.getImplicitAuthUrl},
-            cls := "mdl-button mdl-js-button mdl-button--primary mdl-js-ripple-effect"),
-          a("Authenticate", href := reddit.getImplicitAuthUrl)
+            cls := "mdl-button mdl-js-button mdl-button--primary mdl-js-ripple-effect")
         )
       }
     )}
@@ -144,32 +131,59 @@ object RedditPicturesScript extends JSApp {
     body.innerHTML = ""
     val child = div(
       styleTag("type".attr := "text/css",
-        raw(".mdl-layout__tab-bar-button { background-color: transparent; }"),
+        raw(
+          """
+            |.mdl-layout__tab-bar-button {
+            |  background-color: transparent;
+            |}
+            |.mdl-layout__drawer-button {
+            |  display: flex;
+            |  justify-content: center;
+            |  align-items: center;
+            |}
+          """.stripMargin),
         "scoped".attr := true),
       div(cls := "mdl-layout mdl-js-layout mdl-layout--fixed-header",
         header(cls := "mdl-layout__header",
           background := "url('http://i.imgur.com/lvuZhX4.jpg') center",
           div(cls := "mdl-layout__header-row",
             backgroundColor := "transparent",
-            span(cls := "mdl-layout-title", reddit.state)),
+            span(cls := "mdl-layout-title", Rx(reddit.state() + " - " + secondsPassed() + "s")),
+            div(cls := "mdl-layout-spacer"),
+            div(cls := "mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right",
+              label(cls := "mdl-button mdl-js-button mdl-button--icon",
+                `for` := "fixed-header-drawer-exp",
+                i(cls := "material-icons",
+                  "search")),
+              div(cls := "mdl-textfield__expandable-holder",
+                input( // The input field to enter the query
+                  cls := "mdl-textfield__input",
+                  `type` := "text",
+                  name := "sample",
+                  id := "fixed-header-drawer-exp",
+                  placeholder := reddit.state,
+                  autofocus := true,
+                  onchange := { (e: Event) => { // onchange is fired e.g. when pressing enter or losing focus
+                  val target = e.target.asInstanceOf[Input]
+                    reddit.subredditChanged(Some(target.value))
+                    target.value = ""
+                  }})))),
           div(cls := "mdl-layout__tab-bar mdl-js-ripple-effect",
             backgroundColor := "transparent",
-            for(i <- 1 to 5) yield a(s"Tab $i",
-              href := s"#scroll-tab-$i", cls := "mdl-layout__tab" + (if(i == 1) " is-active" else ""))
+            Seq("Hot", "Top", "Controversial").map(tabTitle => a(tabTitle,
+              href := s"#scroll-tab-$tabTitle", cls := "mdl-layout__tab" + (if(tabTitle == "Hot") " is-active" else "")))
           )
         ),
-
-        mainTag(cls := "mdl-layout__content",
-          div(id := "scalatags",
-            p(helloWorld),
+        div(cls := "mdl-layout__drawer",
+          div(
             authLinkRx,
             div(
               div("Remaining: ", reddit.ratelimitRemaining),
               div("Used: ", reddit.ratelimitUsed),
-              div("Reset: ", reddit.ratelimitReset)),
-            queryInput,
+              div("Reset: ", reddit.ratelimitReset)))),
+        mainTag(cls := "mdl-layout__content",
+          div(id := "scalatags",
             p(reddit.state),
-            //pre(reddit.responseTextRx),
             responseFrags
           )
         )
