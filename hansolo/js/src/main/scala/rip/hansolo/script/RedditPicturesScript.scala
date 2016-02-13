@@ -83,28 +83,26 @@ object RedditPicturesScript extends JSApp {
         case t3: T3 => Try(
           div(
             h4("Score: ", span(t3.link.score), " - ", span(t3.link.title)),
-            div(
-              overflow := "hidden",
-              maxHeight := "75vh",
-              display := "flex",
-              alignItems := "center",
+
               //div("Score: ", span(t3.link.score), " - ", span(t3.link.title)),
               if(t3.link.is_self) {
-                p(flex := "none",
-                  raw(t3.link.selftext_html))
+                p(raw(t3.link.selftext_html))
               } else {
                 if(t3.media.isDefined)
-                  div(flex := "none",
-                    raw(t3.media.get.oembed.html))
+                  div(raw(t3.media.get.oembed.html))
                 else if(t3.preview.isDefined)
-                  img(
-                    width := 100.pct,
-                    height := "auto",
-                    flex := "none",
-                    src := t3.preview.get.images.head.source.url)
+                  div( // TODO: expand on click
+                    overflow := "hidden",
+                    maxHeight := "75vh",
+                    display := "flex",
+                    alignItems := "center",
+                    img(
+                      width := 100.pct,
+                      height := "auto",
+                      flex := "none",
+                      src := t3.preview.get.images.head.source.url))
                 else
                   div(a(href := t3.link.url))}
-            )
           )
         ).recover {
           case e: Exception => div(span("Exception: " + e))
