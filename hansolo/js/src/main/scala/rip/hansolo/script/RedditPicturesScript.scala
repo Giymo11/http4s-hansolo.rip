@@ -1,6 +1,7 @@
 package rip.hansolo.script
 
 import org.scalajs.dom.html.{Element, Input}
+
 import rip.hansolo.Config
 import rip.hansolo.util.UriUtils._
 import rip.hansolo.script.util.ScalatagsRxImplicits._

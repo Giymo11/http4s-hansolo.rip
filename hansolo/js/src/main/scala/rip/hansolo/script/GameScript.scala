@@ -32,17 +32,17 @@ object GameScript extends JSApp {
   val context = canvas.getContext("2d")
       .asInstanceOf[dom.CanvasRenderingContext2D]
 
-  val middle = Vec2(dom.innerWidth/2, dom.innerHeight/2)
+  val middle = Vec2(dom.window.innerWidth/2, dom.window.innerHeight/2)
 
   var player = middle
 
-  var points = Seq.fill(200)(Vec2.random(dom.innerWidth, dom.innerHeight))
+  var points = Seq.fill(200)(Vec2.random(dom.window.innerWidth, dom.window.innerHeight))
 
   var useAccumulatedVector = false
   var creepMiddle = false
 
   var intervalSpeed = 10
-  var drawInterval = dom.setInterval(() => run(), 13)
+  var drawInterval = dom.window.setInterval(() => run(), 13)
 
   def draw(): Unit = {
     clear()
@@ -70,16 +70,16 @@ object GameScript extends JSApp {
 
   def changeIntervalBy(i: Int) = {
     intervalSpeed += i
-    dom.clearInterval(drawInterval)
-    drawInterval = dom.setInterval(() => run(), 6 * intervalSpeed)
+    dom.window.clearInterval(drawInterval)
+    drawInterval = dom.window.setInterval(() => run(), 6 * intervalSpeed)
   }
 
   override def main(): Unit = {
     println("Hello World")
     clear()
 
-    dom.onmousemove = (e: MouseEvent) => player = Vec2(e.clientX.toInt, e.clientY.toInt)
-    dom.onkeydown = (e: KeyboardEvent) => e.keyCode match {
+    dom.window.onmousemove = (e: MouseEvent) => player = Vec2(e.clientX.toInt, e.clientY.toInt)
+    dom.window.onkeydown = (e: KeyboardEvent) => e.keyCode match {
       case KeyCode.T => useAccumulatedVector = !useAccumulatedVector
       case KeyCode.M => creepMiddle = !creepMiddle
       case KeyCode.Up => changeIntervalBy(-1)
@@ -89,12 +89,12 @@ object GameScript extends JSApp {
 
     changeIntervalBy(0)
     // run draw every 13ms
-    dom.setInterval(() => draw(), 13)
+    dom.window.setInterval(() => draw(), 13)
   }
 
   def clear(): Unit = {
-    canvas.width = dom.innerWidth
-    canvas.height = dom.innerHeight
+    canvas.width = dom.window.innerWidth
+    canvas.height = dom.window.innerHeight
 
     context.fillStyle = "black"
     context.fillRect(0, 0, canvas.width, canvas.height)

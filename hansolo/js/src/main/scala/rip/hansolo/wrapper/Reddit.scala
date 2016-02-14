@@ -13,9 +13,8 @@ import rip.hansolo.util.UriUtils._
 import rx._
 import rx.async._
 
-case class ImplicitOauth(mobile: Boolean, clientId: String, redirectUri: String, scope: Seq[String])
 
-case class Reddit(userAgent: String, oauth: ImplicitOauth)(implicit ctx: Ctx.Owner) {
+case class Reddit(val userAgent: String, val oauth: ImplicitOauth)(implicit ctx: Ctx.Owner) extends RedditBase(userAgent, oauth) {
   def subredditChanged(opt: Option[String]) = opt match {
     case Some(subreddit) if subreddit != subredditUrl.now => subredditUrl() = subreddit
     case _ => // do nothing
@@ -64,7 +63,8 @@ case class Reddit(userAgent: String, oauth: ImplicitOauth)(implicit ctx: Ctx.Own
       case _ =>           (Map(),                                     redditUrl)
     }
 
-    Ajax.get(baseUrl + subredditUrl() + "?raw_json=1", headers = headers)
+    // cannot set user agent, as this is not allowed in xhr. i'll leave it in, to show my intentions.
+    Ajax.get(baseUrl + subredditUrl() + "?raw_json=1", headers = headers + ("User-Agent" -> userAgent))
       .map[Option[XMLHttpRequest]](Some(_))
       .toRx(None)
   } map (_.apply()) // needed until flatMap works

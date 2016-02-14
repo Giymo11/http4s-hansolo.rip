@@ -31,7 +31,7 @@ val hansolo = crossProject.settings(
 ).jsSettings(
   name := "scala-js",
   libraryDependencies ++= Seq(
-    "org.scala-js" %%% "scalajs-dom" % "0.8.2",
+    "org.scala-js" %%% "scalajs-dom" % "0.9.0",
     "com.timushev" %%% "scalatags-rx" % "0.1.0",
     "com.lihaoyi" %%% "scalarx" % "0.3.0"
   ),
@@ -47,6 +47,7 @@ val hansolo = crossProject.settings(
     "com.typesafe.akka" %% "akka-actor" % "2.4.1",
     "org.webjars" % "bootstrap" % "3.3.6",
     "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+    "org.http4s" %% "http4s-blaze-client" % http4sVersion,
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-argonaut" % http4sVersion,
     "org.scalaz" %% "scalaz-core" % scalazCoreVersion,
