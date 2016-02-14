@@ -1,20 +1,22 @@
 package rip.hansolo.script
 
-import org.scalajs.dom.html.Input
+import org.scalajs.dom.html.{Element, Input}
 import rip.hansolo.Config
-import rip.hansolo.model.RedditModel._
-import rip.hansolo.script.wrapper._
-import rip.hansolo.script.util.UriUtils._
+import rip.hansolo.util.UriUtils._
 import rip.hansolo.script.util.ScalatagsRxImplicits._
+import rip.hansolo.view.RedditRenderer
+import rip.hansolo.wrapper._
 
 import scala.scalajs.js
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExport
 
 import org.scalajs.dom
-import org.scalajs.dom.raw.{HashChangeEvent, Event}
+import org.scalajs.dom.raw.{HTMLElement, HashChangeEvent, Event}
 
 import scala.util.Try
+import scalatags.JsDom
+import scalatags.JsDom.{TypedTag, all}
 import scalatags.JsDom.all._
 
 import rx._
@@ -70,56 +72,23 @@ object RedditPicturesScript extends JSApp {
     }
     timer triggerLater {secondsPassed() = secondsPassed.now + 1}
 
+    reddit.responseRedditRx.foreach(_ => secondsPassed() = 0)
+
+    val redditRenderer = RedditRenderer(scalatags.JsDom)
+
     /**
       * The Frags generated dynamically from the RedditModel
       * depends on responseRedditRx.
       */
-    val responseFrags: Rx[Frag] = Rx {
-      implicit def data2frag(data: Data): Frag = data match {
-        case listing: Listing => div(
-          // the data2frag recursion would be inferred by sbt, but not by intellij.
-          listing.children.map(xs => data2frag(xs))
-        )
-        case t3: T3 => Try(
-          div(
-            h4("Score: ", span(t3.link.score), " - ", span(t3.link.title)),
-
-              //div("Score: ", span(t3.link.score), " - ", span(t3.link.title)),
-              if(t3.link.is_self) {
-                p(raw(t3.link.selftext_html))
-              } else {
-                if(t3.media.isDefined)
-                  div(raw(t3.media.get.oembed.html))
-                else if(t3.preview.isDefined)
-                  div( // TODO: expand on click
-                    overflow := "hidden",
-                    maxHeight := "75vh",
-                    display := "flex",
-                    alignItems := "center",
-                    img(
-                      width := 100.pct,
-                      height := "auto",
-                      flex := "none",
-                      src := t3.preview.get.images.head.source.url))
-                else
-                  div(a(href := t3.link.url))}
+    val responseFrags: Rx[Frag] = reddit.responseRedditRx.map(
+      _.map(data =>
+        div(cls := "mdl-grid",
+          div(cls := "mdl-cell mdl-cell--8-col mdl-cell--2-offset-desktop",
+            redditRenderer.data2frag(data)
           )
-        ).recover {
-          case e: Exception => div(span("Exception: " + e))
-        }.get
-        //case linkpost: Linkpost => span(linkpost.title + " - ", a("link", href := linkpost.url))
-        case NoData(msg) => span("NoData: " + msg, backgroundColor := "red")
-        case _ => span("Should not happen!", backgroundColor := "red")
-      }
-      val frags = for {
-        description <- reddit.responseRedditRx()
-      } yield div(
-        description
-      )
-      frags.getOrElse(p("fetching response for " + reddit.state.now))
-    }
-
-    reddit.responseRedditRx.foreach(_ => secondsPassed() = 0)
+        )
+      ).getOrElse(p("fetching response for " + reddit.state.now))
+    )
 
     val drawerContent: Rx[Frag] = Rx {
       div(
@@ -142,12 +111,52 @@ object RedditPicturesScript extends JSApp {
           div("Reset: ", reddit.ratelimitReset)))
     }
 
-    val mainTag = "main".tag[dom.html.Element]
-    val styleTag = "style".tag[dom.html.Element]
+    val actionbarTitle: Frag = Rx(reddit.state() + " - " + secondsPassed() + "s")
+
+    val actionbarRightAligned: Frag =
+      div(cls := "mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right",
+        label(cls := "mdl-button mdl-js-button mdl-button--icon",
+          `for` := "fixed-header-drawer-exp",
+          i(cls := "material-icons",
+            "search")),
+        div(cls := "mdl-textfield__expandable-holder",
+          input( // The input field to enter the query
+            cls := "mdl-textfield__input",
+            `type` := "text",
+            name := "sample",
+            id := "fixed-header-drawer-exp",
+            placeholder := reddit.state,
+            autofocus := true,
+            onchange := { (e: Event) => { // onchange is fired e.g. when pressing enter or losing focus
+            val target = e.target.asInstanceOf[Input]
+              reddit.subredditChanged(Some(target.value))
+              target.value = ""
+            }}
+          )
+        )
+      )
+
+    val actionbarHeaderBackground = "url('http://i.imgur.com/lvuZhX4.jpg') center"
 
     val body = dom.document.body
     body.innerHTML = ""
-    val child = div(
+    val child = layout(responseFrags, drawerContent, actionbarTitle, actionbarRightAligned, actionbarHeaderBackground)
+    val upgrader = js.Dynamic.global.componentUpgrader
+      if(!js.isUndefined(upgrader)) upgrader.upgradeElement(child)
+    body.appendChild(child)
+  }
+
+  def layout(
+              responseFrags: Frag,
+              drawerContent: Frag,
+              actionbarTitle: Frag,
+              actionbarRightAligned: Frag,
+              actionbarHeaderBackground: String): Element = {
+
+    val mainTag = "main".tag[Element]
+    val styleTag = "style".tag[Element]
+
+    div(
       styleTag("type".attr := "text/css",
         raw(
           """
@@ -163,49 +172,22 @@ object RedditPicturesScript extends JSApp {
         "scoped".attr := true),
       div(cls := "mdl-layout mdl-js-layout mdl-layout--fixed-header",
         header(cls := "mdl-layout__header",
-          background := "url('http://i.imgur.com/lvuZhX4.jpg') center",
+          background := actionbarHeaderBackground,
           div(cls := "mdl-layout__header-row",
             backgroundColor := "transparent",
-            span(cls := "mdl-layout-title", Rx(reddit.state() + " - " + secondsPassed() + "s")),
+            span(cls := "mdl-layout-title",
+              actionbarTitle
+            ),
             div(cls := "mdl-layout-spacer"),
-            div(cls := "mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right",
-              label(cls := "mdl-button mdl-js-button mdl-button--icon",
-                `for` := "fixed-header-drawer-exp",
-                i(cls := "material-icons",
-                  "search")),
-              div(cls := "mdl-textfield__expandable-holder",
-                input( // The input field to enter the query
-                  cls := "mdl-textfield__input",
-                  `type` := "text",
-                  name := "sample",
-                  id := "fixed-header-drawer-exp",
-                  placeholder := reddit.state,
-                  autofocus := true,
-                  onchange := { (e: Event) => { // onchange is fired e.g. when pressing enter or losing focus
-                  val target = e.target.asInstanceOf[Input]
-                    reddit.subredditChanged(Some(target.value))
-                    target.value = ""
-                  }})))),
-          div(cls := "mdl-layout__tab-bar mdl-js-ripple-effect",
-            backgroundColor := "transparent",
-            Seq("Hot", "Top", "Controversial").map(tabTitle => a(tabTitle,
-              href := s"#scroll-tab-$tabTitle", cls := "mdl-layout__tab" + (if(tabTitle == "Hot") " is-active" else "")))
+            actionbarRightAligned
           )
         ),
         div(cls := "mdl-layout__drawer",
           drawerContent),
         mainTag(cls := "mdl-layout__content",
-          // TODO: think about super-widescreen usage
-          div(cls := "mdl-grid",
-            div(cls := "mdl-cell mdl-cell--8-col mdl-cell--2-offset-desktop",
-              responseFrags
-            )
-          )
+          responseFrags
         )
       )
     ).render
-    val upgrader = js.Dynamic.global.componentUpgrader
-      if(!js.isUndefined(upgrader)) upgrader.upgradeElement(child)
-    body.appendChild(child)
   }
 }

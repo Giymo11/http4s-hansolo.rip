@@ -93,7 +93,9 @@ object RedditModel {
                        height: Int,
                        width: Int,
                        url: String
-                       )
+                       ) {
+    def aspectRatio: Double = {width.toDouble / height}
+  }
   case class Media(oembed: OEmbed, `type`: String)
   case class OEmbed(
                     //author_name: String,    youtube only
@@ -110,11 +112,11 @@ object RedditModel {
                     )
 
   case class T3(
-                votable: Votable,
-                created: Created,
-                link: Link,
-                preview: Option[Preview],
-                media: Option[Media]
+                 votable: Votable,
+                 created: Created,
+                 link: Link,
+                 preview: Option[Preview],
+                 media: Option[Media]
                ) extends Data
   object T3 {
     def fromValue(value: Js.Value) = Try {
